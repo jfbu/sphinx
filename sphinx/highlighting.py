@@ -44,8 +44,8 @@ lexers = dict(
     rest = RstLexer(stripnl=False),
     c = CLexer(stripnl=False),
 )  # type: Dict[unicode, Lexer]
-for _lexer in lexers.values():
-    _lexer.add_filter('raiseonerror')
+# for _lexer in lexers.values():
+#     _lexer.add_filter('raiseonerror')
 
 
 escape_hl_chars = {ord(u'\\'): u'\\PYGZbs{}',
@@ -136,7 +136,8 @@ class PygmentsBridge(object):
                                    location=location)
                     lexer = lexers['none']
                 else:
-                    lexer.add_filter('raiseonerror')
+                    pass
+                    # lexer.add_filter('raiseonerror')
 
         # trim doctest options if wanted
         if isinstance(lexer, PythonConsoleLexer) and self.trim_doctest_flags:
