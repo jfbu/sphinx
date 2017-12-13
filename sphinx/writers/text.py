@@ -363,6 +363,14 @@ class TextTranslator(nodes.NodeVisitor):
         # type: (nodes.Node) -> None
         self.add_text('\n')
 
+    def visit_desc_element(self, node):
+        # type: (nodes.Node) -> None
+        pass
+
+    def depart_desc_element(self, node):
+        # type: (nodes.Node) -> None
+        pass
+
     def visit_desc_name(self, node):
         # type: (nodes.Node) -> None
         pass

@@ -163,6 +163,14 @@ class ManualPageTranslator(BaseTranslator):
         # type: (nodes.Node) -> None
         self.body.append(' ')
 
+    def visit_desc_element(self, node):
+        # type: (nodes.Node) -> None
+        pass
+
+    def depart_desc_element(self, node):
+        # type: (nodes.Node) -> None
+        pass
+
     def visit_desc_addname(self, node):
         # type: (nodes.Node) -> None
         pass

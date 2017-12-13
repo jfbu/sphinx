@@ -105,6 +105,14 @@ class HTML5Translator(BaseTranslator):
             self.add_permalink_ref(node.parent, _('Permalink to this definition'))
         self.body.append('<br />')
 
+    def visit_desc_element(self, node):
+        # type: (nodes.Node) -> None
+        self.body.append(self.starttag(node, 'code', ''))
+
+    def depart_desc_element(self, node):
+        # type: (nodes.Node) -> None
+        self.body.append('</code>')
+
     def visit_desc_addname(self, node):
         # type: (nodes.Node) -> None
         self.body.append(self.starttag(node, 'code', '', CLASS='descclassname'))

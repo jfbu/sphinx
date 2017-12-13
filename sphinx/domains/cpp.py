@@ -1470,7 +1470,8 @@ class ASTTemplateParams(ASTBase):
             lineNode = parentNode
         else:
             lineNode = makeLine()
-        lineNode += nodes.Text("template<")
+        lineNode += addnodes.desc_keyword("template", domain="cpp")
+        lineNode += nodes.Text("<")
         first = True
         for param in self.params:
             if not first:

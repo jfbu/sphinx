@@ -104,7 +104,29 @@ class desc_signature_line(nodes.Part, nodes.Inline, nodes.FixedTextElement):
     """
 
 
-# nodes to use within a desc_signature or desc_signature_line
+# Nodes to use within a desc_signature or desc_signature_line
+# =============================================================================================
+
+class desc_element(nodes.Part, nodes.Inline, nodes.FixedTextElement):
+    """Node for inline text elementts of a signature."""
+
+
+def _make_desc_element(text, typ, domain):
+    node = desc_element(text=text)
+    node['classes'].append("d")
+    node['classes'].append(typ)
+    if domain is not None:
+        node['classes'].append("%s-%s" % (typ, domain))
+    return node
+
+
+def desc_keyword(text, domain=None):
+    return _make_desc_element(text, "k", domain)
+
+
+class desc_name(nodes.Part, nodes.Inline, nodes.FixedTextElement):
+    """Node for the main object name."""
+
 
 class desc_addname(nodes.Part, nodes.Inline, nodes.FixedTextElement):
     """Node for additional name parts (module name, class name)."""
@@ -116,17 +138,6 @@ desc_classname = desc_addname
 
 class desc_type(nodes.Part, nodes.Inline, nodes.FixedTextElement):
     """Node for return types or object type names."""
-
-
-class desc_returns(desc_type):
-    """Node for a "returns" annotation (a la -> in Python)."""
-    def astext(self):
-        # type: () -> unicode
-        return ' -> ' + nodes.TextElement.astext(self)
-
-
-class desc_name(nodes.Part, nodes.Inline, nodes.FixedTextElement):
-    """Node for the main object name."""
 
 
 class desc_parameterlist(nodes.Part, nodes.Inline, nodes.FixedTextElement):
@@ -149,6 +160,16 @@ class desc_optional(nodes.Part, nodes.Inline, nodes.FixedTextElement):
 
 class desc_annotation(nodes.Part, nodes.Inline, nodes.FixedTextElement):
     """Node for signature annotations (not Python 3-style annotations)."""
+
+
+class desc_returns(desc_type):
+    """Node for a "returns" annotation (a la -> in Python)."""
+    def astext(self):
+        # type: () -> unicode
+        return ' -> ' + nodes.TextElement.astext(self)
+
+
+# =============================================================================================
 
 
 class desc_content(nodes.General, nodes.Element):

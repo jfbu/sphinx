@@ -567,6 +567,14 @@ div.literal-block-wrapper div.highlight {
     margin: 0;
 }
 
+code.d {
+    background-color: transparent;
+}
+
+code.k-cpp {
+    color: #0000AA;
+}
+
 code.descname {
     background-color: transparent;
     font-weight: bold;
