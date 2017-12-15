@@ -2282,6 +2282,7 @@ class LaTeXTranslator(nodes.NodeVisitor):
             else:
                 opts = {}
 
+            highlight_args['texcomments'] = True
             hlcode = self.highlighter.highlight_block(
                 code, lang, opts=opts, linenos=linenos,
                 location=(self.curfilestack[-1], node.line), **highlight_args
@@ -2308,6 +2309,14 @@ class LaTeXTranslator(nodes.NodeVisitor):
                 hlcode += '\\end{sphinxVerbatimintable}'
             else:
                 hlcode += '\\end{sphinxVerbatim}'
+            # horrible hack, pas le temps maintenant pour mieux
+            # aucune idée pourquoi le texcomments fait que Pygments
+            # fait ces trucs liés au mode mathématique
+            # et pourquoi il fait codes= et pas codes*=
+            # et pourquoi c'est texescape (faudrait voir le self.highlighter.highlight_block)
+            # Jeudi 14 décembre 2017 à 15:00:35
+            hlcode = hlcode.replace(r',codes={\catcode{}`\\$=3\catcode{}`\\textasciicircum{}=7\catcode{}`\\_=8}', '')
+            # print(hlcode)
             self.body.append('\n' + hllines + '\n' + hlcode + '\n')
             raise nodes.SkipNode
 
