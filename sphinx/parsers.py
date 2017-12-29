@@ -60,9 +60,10 @@ class RSTParser(docutils.parsers.rst.Parser):
 
     smartquotes_allowed = True
 
-    def set_smartquotes_allowed(self, status):
-        # type: (bool) -> None
-        self.smartquotes_allowed = status
+    def set_smartquotes_action(self, action):
+        # type: (str) -> None
+        if hasattr(SphinxSmartQuotes, 'smartquotes_action'):
+            SphinxSmartQuotes.smartquotes_action = action
         return None
 
     def get_transforms(self):

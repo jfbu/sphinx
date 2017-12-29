@@ -691,6 +691,7 @@ class BuildEnvironment(object):
                 break
         else:
             self.settings['smart_quotes'] = False
+        self.settings['smartquotes_action'] = self.config.smartquotes_action
 
         docutilsconf = path.join(self.srcdir, 'docutils.conf')
         # read docutils.conf from source dir, not from current dir
