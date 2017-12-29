@@ -17,6 +17,8 @@ Features added
 * ``VerbatimHighlightColor`` is a new
   :ref:`LaTeX 'sphinxsetup' <latexsphinxsetup>` key (refs: #4285)
 * Easier customizability of LaTeX macros involved in rendering of code-blocks
+* Add :confval:`smart_quotes` to disable smart quotes through ``conf.py``
+  (refs: #3967)
 
 Bugs fixed
 ----------

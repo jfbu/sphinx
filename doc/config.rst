@@ -353,6 +353,27 @@ General configuration
 
    .. versionadded:: 1.3
 
+.. confval:: smart_quotes
+
+   If true, the `Docutils Smart Quotes transform`__, originally based on
+   `SmartyPants`__ (limited to English) and currently applying to many
+   languages, will be used to convert quotes and dashes to typographically
+   correct entities.  Default: ``True``.
+
+   __ http://docutils.sourceforge.net/docs/user/smartquotes.html
+   __ https://daringfireball.net/projects/smartypants/
+
+   .. versionadded:: 1.6.6
+      It replaces deprecated :confval:`html_use_smartypants`.
+      It applies to all builders.
+
+   A `docutils.conf`__ file located in the configuration directory (or a
+   global :file:`~/.docutils` file) will be obeyed if it deactivates smart
+   quotes.  Reciprocally, if Sphinx own :confval:`smart_quotes` is set to
+   ``False``, then smart quotes are deactivated.
+
+   __ http://docutils.sourceforge.net/docs/user/config.html
+
 .. confval:: tls_verify
 
    If true, Sphinx verifies server certifications.  Default is ``True``.
@@ -784,15 +805,11 @@ that use Sphinx's HTMLWriter class.
 
 .. confval:: html_use_smartypants
 
-   If true, `SmartyPants <https://daringfireball.net/projects/smartypants/>`_
-   will be used to convert quotes and dashes to typographically correct
+   If true, quotes and dashes are converted to typographically correct
    entities.  Default: ``True``.
 
    .. deprecated:: 1.6
-      To disable or customize smart quotes, use the Docutils configuration file
-      (``docutils.conf``) instead to set there its `smart_quotes option`_.
-
-      .. _`smart_quotes option`: http://docutils.sourceforge.net/docs/user/config.html#smart-quotes
+      To disable smart quotes, use rather :confval:`smart_quotes`.
 
 .. confval:: html_add_permalinks
 
