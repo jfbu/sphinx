@@ -58,12 +58,20 @@ class Parser(docutils.parsers.Parser):
 class RSTParser(docutils.parsers.rst.Parser):
     """A reST parser customized for Sphinx."""
 
+    smartquotes_allowed = True
+
+    def set_smartquotes_allowed(self, status):
+        # type: (bool) -> None
+        self.smartquotes_allowed = status
+        return None
+
     def get_transforms(self):
         # type: () -> List[Type[Transform]]
         """Sphinx's reST parser replaces a transform class for smart-quotes by own's"""
         transforms = docutils.parsers.rst.Parser.get_transforms(self)
         transforms.remove(SmartQuotes)
-        transforms.append(SphinxSmartQuotes)
+        if self.smartquotes_allowed:
+            transforms.append(SphinxSmartQuotes)
         return transforms
 
 
