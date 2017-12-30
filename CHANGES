@@ -19,7 +19,8 @@ Features added
 * Easier customizability of LaTeX macros involved in rendering of code-blocks
 * Add :confval:`smart_quotes` to disable smart quotes through ``conf.py``
   (refs: #3967)
-* Add :confval:`smartquotes_action`
+* Add :confval:`smartquotes_action` and :confval:`smartquotes_excludes`
+  (refs: #4142, #4357)
 
 Bugs fixed
 ----------

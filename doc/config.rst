@@ -395,11 +395,12 @@ General configuration
 
    It gives sufficient condition to ignore the :confval:`smart_quotes` setting
    and deactivate the Smart Quotes transform.  The keys must be ``'builder'``
-   or names of configuration settings.  The values are lists.  Please note
-   that in case of invocation of ``make`` with multiple builder names, the
-   first one counts.  Also, when using ``sphinx-build`` in succession for
-   different builders, one needs to use ``-E`` option (e.g. in case of an
-   ``html`` build followed by a ``man`` build, or conversely.)
+   or names of configuration settings.  The values are lists.  In case of
+   invocation of ``make`` with multiple targets, the first builder name is the
+   only one which is tested and decides for all.  Also, after ``make html`` one
+   should issue ``make text O="-E"`` to force the re-parsing of source
+   files. On the other hand as ``sphinx-build`` by default caches the parsed
+   source files per builder, it does not have this issue.
 
    .. versionadded:: 1.6.6
 
