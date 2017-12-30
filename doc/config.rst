@@ -365,7 +365,8 @@ General configuration
 
    .. versionadded:: 1.6.6
       It replaces deprecated :confval:`html_use_smartypants`.
-      It applies to all builders.
+      It applies by default to all builders except ``man`` and ``text``
+      (see :confval:`smartquotes_excludes`.)
 
    A `docutils.conf`__ file located in the configuration directory (or a
    global :file:`~/.docutils` file) will be obeyed if it deactivates smart
@@ -385,6 +386,22 @@ General configuration
    .. versionadded:: 1.6.6
 
    __ https://sourceforge.net/p/docutils/code/HEAD/tree/trunk/docutils/
+
+.. confval:: smartquotes_excludes
+
+   This is a ``set`` whose default is::
+
+     {'language': ['ja'], 'builder': ['man', 'text']}
+
+   It gives sufficient condition to ignore the :confval:`smart_quotes` setting
+   and deactivate the Smart Quotes transform.  The keys must be ``'builder'``
+   or names of configuration settings.  The values are lists.  Please note
+   that in case of invocation of ``make`` with multiple builder names, the
+   first one counts.  Also, when using ``sphinx-build`` in succession for
+   different builders, one needs to use ``-E`` option (e.g. in case of an
+   ``html`` build followed by a ``man`` build, or conversely.)
+
+   .. versionadded:: 1.6.6
 
 .. confval:: tls_verify
 

@@ -21,7 +21,7 @@ from os import path
 from copy import copy
 from collections import defaultdict
 
-from six import BytesIO, itervalues, class_types, next
+from six import BytesIO, itervalues, class_types, next, iteritems
 from six.moves import cPickle as pickle
 
 from docutils.io import NullOutput
@@ -684,6 +684,22 @@ class BuildEnvironment(object):
                               "them, use the smart_quotes option",
                               RemovedInSphinx17Warning)
                 self.settings['smart_quotes'] = self.config.html_use_smartypants
+
+            # some conditions exclude smart quotes, overriding smart_quotes
+            for valname, vallist in iteritems(self.config.smartquotes_excludes):
+                if valname == 'builder':
+                    # this will work only for checking first build target
+                    if self.app.builder.name in vallist:
+                        self.settings['smart_quotes'] = False
+                        break
+                else:
+                    try:
+                        attr = getattr(self.config, valname)
+                        if attr in vallist:
+                            self.settings['smart_quotes'] = False
+                            break
+                    except AttributeError:
+                        pass
 
         # confirm selected language supports smart_quotes or not
         for tag in normalize_language_tag(language):
