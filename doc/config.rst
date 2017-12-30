@@ -389,7 +389,7 @@ General configuration
 
 .. confval:: smartquotes_excludes
 
-   This is a ``set`` whose default is::
+   This is a ``dict`` whose default is::
 
      {'language': ['ja'], 'builder': ['man', 'text']}
 
