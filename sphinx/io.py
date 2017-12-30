@@ -53,9 +53,6 @@ class SphinxBaseReader(standalone.Reader):
             parser = parser_class()
             if hasattr(parser, 'set_application'):
                 parser.set_application(app)
-            if hasattr(parser, 'set_smartquotes_action'):
-                parser.smartquotes_allowed = app.env.settings['smart_quotes']
-                parser.set_smartquotes_action(app.env.settings['smartquotes_action'])
             self.parser_map[suffix] = parser
 
     def read(self, source, parser, settings):
