@@ -1216,12 +1216,12 @@ class LaTeXTranslator(nodes.NodeVisitor):
 
     def visit_desc_element(self, node):
         # type: (nodes.Node) -> None
-        self.body.append(r'\sphinxcode{')
+        self.body.append('\\PYG{%s}{\\sphinxupquote{' % '+'.join(node['classes']))
         self.literal_whitespace += 1
 
     def depart_desc_element(self, node):
         # type: (nodes.Node) -> None
-        self.body.append('}')
+        self.body.append('}}')
         self.literal_whitespace -= 1
 
     def visit_desc_addname(self, node):
