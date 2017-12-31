@@ -418,8 +418,8 @@ def inline_all_toctrees(builder, docnameset, docname, tree, colorfunc, traversed
     return tree
 
 
-def make_refnode(builder, fromdocname, todocname, targetid, child, title=None):
-    # type: (Builder, unicode, unicode, unicode, nodes.Node, unicode) -> nodes.reference
+def make_refnode(builder, fromdocname, todocname, targetid, child, title=None, typ=None):
+    # type: (Builder, unicode, unicode, unicode, nodes.Node, unicode, unicode) -> nodes.reference
     """Shortcut to create a reference node."""
     node = nodes.reference('', '', internal=True)
     if fromdocname == todocname and targetid:
@@ -432,6 +432,8 @@ def make_refnode(builder, fromdocname, todocname, targetid, child, title=None):
             node['refuri'] = builder.get_relative_uri(fromdocname, todocname)
     if title:
         node['reftitle'] = title
+    if typ:
+        node['reftype'] = typ
     node.append(child)
     return node
 

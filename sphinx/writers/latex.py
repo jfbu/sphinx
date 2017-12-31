@@ -892,7 +892,20 @@ class LaTeXTranslator(nodes.NodeVisitor):
 
     def depart_document(self, node):
         # type: (nodes.Node) -> None
-        pass
+        if self.bibitems:
+            widest_label = ""  # type: unicode
+            for bi in self.bibitems:
+                if len(widest_label) < len(bi[0]):
+                    widest_label = bi[0]
+            self.body.append(u'\n\\begin{sphinxthebibliography}{%s}\n' % self.encode(widest_label))
+            for bi in self.bibitems:
+                # target = self.hypertarget(bi[2] + ':' + bi[3],
+                #                           withdoc=False)
+                self.body.append(u'\\bibitem[%s]{%s}%s\n' %
+                                 (self.encode(bi[0]), self.idescape(bi[0]),
+                                  bi[1]))
+            self.body.append(u'\\end{sphinxthebibliography}\n')
+            self.bibitems = []
 
     def visit_start_of_file(self, node):
         # type: (nodes.Node) -> None
@@ -1937,8 +1950,14 @@ class LaTeXTranslator(nodes.NodeVisitor):
         raise nodes.SkipNode
 
     def visit_reference(self, node):
+        #print("VISITREF", node)
+        #print("PARENT IS", node.parent)
+        #print()
+        #print("BODY:")
+        #print()
+        #print(self.body)
         # type: (nodes.Node) -> None
-        if not self.in_title:
+        if not self.in_title and node.get('reftype', '') != 'citation':
             for id in node.get('ids'):
                 anchor = not self.in_caption
                 self.body += self.hypertarget(id, anchor=anchor)
@@ -1947,6 +1966,9 @@ class LaTeXTranslator(nodes.NodeVisitor):
             uri = '%' + self.curfilestack[-1] + '#' + node['refid']
         if self.in_title or not uri:
             self.context.append('')
+        elif node.get('reftype', '') == 'citation':
+            #print("****CITATION****")
+            self.visit_citation_reference(node)
         elif uri.startswith('#'):
             # references to labels in the same document
             id = self.curfilestack[-1] + ':' + uri[1:]
@@ -1993,6 +2015,7 @@ class LaTeXTranslator(nodes.NodeVisitor):
 
     def depart_reference(self, node):
         # type: (nodes.Node) -> None
+        #print("DEPART", context)
         self.body.append(self.context.pop())
 
     def visit_number_reference(self, node):
@@ -2116,25 +2139,32 @@ class LaTeXTranslator(nodes.NodeVisitor):
 
     def visit_citation(self, node):
         # type: (nodes.Node) -> None
-        label = node[0].astext()
-        self.body.append(u'\\bibitem[%s]{%s:%s}' %
-                         (self.encode(label), node['docname'], node['ids'][0]))
+        # TODO maybe use cite bibitems
+        # bibitem: [citelabel, citetext, docname, citeid]
+        #print("VISITCITATION", node)
+        self.bibitems.append(['', '', '', ''])
+        self.context.append(len(self.body))
 
     def depart_citation(self, node):
         # type: (nodes.Node) -> None
-        pass
+        #print("DEPARTCITATION", node)
+        size = self.context.pop()
+        text = ''.join(self.body[size:])
+        del self.body[size:]
+        #print(self.bibitems[-1])
+        self.bibitems[-1][1] = text
+        #print(self.bibitems[-1])
 
     def visit_citation_reference(self, node):
         # type: (nodes.Node) -> None
-        if self.in_title:
-            pass
-        else:
-            self.body.append('\\sphinxcite{%s:%s}' % (node['docname'], node['refname']))
-            raise nodes.SkipNode
-
-    def depart_citation_reference(self, node):
-        # type: (nodes.Node) -> None
-        pass
+        # This is currently never encountered, since citation_reference nodes
+        # are already replaced by pending_xref nodes in the environment.
+        #print("VISITCITATIONREF", node)
+        #print("CONTEXTE", self.context)
+        #print("BODY", self.body)
+        self.body.append('\\cite{%s}' % self.idescape(node.astext()[1:-1]))
+        #print("BODY", self.body)
+        raise nodes.SkipNode
 
     def visit_literal(self, node):
         # type: (nodes.Node) -> None

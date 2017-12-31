@@ -38,6 +38,7 @@ class ReferencesResolver(SphinxTransform):
     def apply(self):
         # type: () -> None
         for node in self.document.traverse(addnodes.pending_xref):
+            # print("RESOLVING", node)
             contnode = node[0].deepcopy()
             newnode = None
 
@@ -55,6 +56,7 @@ class ReferencesResolver(SphinxTransform):
                         raise NoUri
                     newnode = domain.resolve_xref(self.env, refdoc, self.app.builder,
                                                   typ, target, node, contnode)
+                    # print("NEWNODE_FROM_DOMAIN", newnode)
                 # really hardwired reference types
                 elif typ == 'any':
                     newnode = self.resolve_anyref(refdoc, node, contnode)
@@ -68,6 +70,8 @@ class ReferencesResolver(SphinxTransform):
                         self.warn_missing_reference(refdoc, typ, target, node, domain)
             except NoUri:
                 newnode = contnode
+                # print('NoUri', newnode)
+            # print("DONE", newnode or contnode)
             node.replace_self(newnode or contnode)
 
     def resolve_anyref(self, refdoc, node, contnode):
