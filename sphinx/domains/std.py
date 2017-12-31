@@ -828,9 +828,6 @@ class StandardDomain(Domain):
         from sphinx.environment import NoUri
 
         docname, labelid, lineno = self.data['citations'].get(target, ('', '', 0))
-        # print("NODE", node)
-        # print("CONTNODE", contnode)
-        # print(docname, labelid, lineno)
         if not docname:
             if 'ids' in node:
                 # remove ids attribute that annotated at
@@ -839,9 +836,6 @@ class StandardDomain(Domain):
             return None
 
         try:
-            # foo = make_refnode(builder, fromdocname, docname,
-            #                    labelid, contnode, typ=typ)
-            # print("FOO", foo)
             return make_refnode(builder, fromdocname, docname,
                                 labelid, contnode, typ=typ)
         except NoUri:

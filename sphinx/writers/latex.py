@@ -899,8 +899,6 @@ class LaTeXTranslator(nodes.NodeVisitor):
                     widest_label = bi[0]
             self.body.append(u'\n\\begin{sphinxthebibliography}{%s}\n' % self.encode(widest_label))
             for bi in self.bibitems:
-                # target = self.hypertarget(bi[2] + ':' + bi[3],
-                #                           withdoc=False)
                 self.body.append(u'\\bibitem[%s]{%s}%s\n' %
                                  (self.encode(bi[0]), self.idescape(bi[0]),
                                   bi[1]))
@@ -1950,12 +1948,6 @@ class LaTeXTranslator(nodes.NodeVisitor):
         raise nodes.SkipNode
 
     def visit_reference(self, node):
-        #print("VISITREF", node)
-        #print("PARENT IS", node.parent)
-        #print()
-        #print("BODY:")
-        #print()
-        #print(self.body)
         # type: (nodes.Node) -> None
         if not self.in_title and node.get('reftype', '') != 'citation':
             for id in node.get('ids'):
@@ -1967,7 +1959,6 @@ class LaTeXTranslator(nodes.NodeVisitor):
         if self.in_title or not uri:
             self.context.append('')
         elif node.get('reftype', '') == 'citation':
-            #print("****CITATION****")
             self.visit_citation_reference(node)
         elif uri.startswith('#'):
             # references to labels in the same document
@@ -2015,7 +2006,6 @@ class LaTeXTranslator(nodes.NodeVisitor):
 
     def depart_reference(self, node):
         # type: (nodes.Node) -> None
-        #print("DEPART", context)
         self.body.append(self.context.pop())
 
     def visit_number_reference(self, node):
@@ -2141,29 +2131,21 @@ class LaTeXTranslator(nodes.NodeVisitor):
         # type: (nodes.Node) -> None
         # TODO maybe use cite bibitems
         # bibitem: [citelabel, citetext, docname, citeid]
-        #print("VISITCITATION", node)
         self.bibitems.append(['', '', '', ''])
         self.context.append(len(self.body))
 
     def depart_citation(self, node):
         # type: (nodes.Node) -> None
-        #print("DEPARTCITATION", node)
         size = self.context.pop()
         text = ''.join(self.body[size:])
         del self.body[size:]
-        #print(self.bibitems[-1])
         self.bibitems[-1][1] = text
-        #print(self.bibitems[-1])
 
     def visit_citation_reference(self, node):
         # type: (nodes.Node) -> None
         # This is currently never encountered, since citation_reference nodes
         # are already replaced by pending_xref nodes in the environment.
-        #print("VISITCITATIONREF", node)
-        #print("CONTEXTE", self.context)
-        #print("BODY", self.body)
         self.body.append('\\cite{%s}' % self.idescape(node.astext()[1:-1]))
-        #print("BODY", self.body)
         raise nodes.SkipNode
 
     def visit_literal(self, node):
