@@ -94,13 +94,18 @@ versioning_conditions = {
 
 @contextmanager
 def sphinx_smartquotes_action(env):
-    try:
-        original = SphinxSmartQuotes.smartquotes_action
-        SphinxSmartQuotes.smartquotes_action = env.config.smartquotes_action
+    # type: (BuildEnvironment) -> Generator
+    if not hasattr(SphinxSmartQuotes, 'smartquotes_action'):
+        # less than docutils-0.14
         yield
-        SphinxSmartQuotes.smartquotes_action = original
-    except AttributeError:
-        yield
+    else:
+        # docutils-0.14 or above
+        try:
+            original = SphinxSmartQuotes.smartquotes_action
+            SphinxSmartQuotes.smartquotes_action = env.config.smartquotes_action
+            yield
+        finally:
+            SphinxSmartQuotes.smartquotes_action = original
 
 
 class NoUri(Exception):
