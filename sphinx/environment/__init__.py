@@ -710,17 +710,6 @@ class BuildEnvironment(object):
                     if self.config.language in vallist:
                         self.settings['smart_quotes'] = False
                         break
-                else:
-                    try:
-                        attr = getattr(self.config, valname[:-1])
-                        if attr in vallist:
-                            self.settings['smart_quotes'] = False
-                            break
-                    except AttributeError:
-                        warnings.warn("'%s' (from '%s' in smartquotes_excludes) "
-                                      "isn't a valid configuration variable. "
-                                      "Did you forget an ending 's'?"
-                                      % (valname[:-1], valname))
 
         # confirm selected language supports smart_quotes or not
         for tag in normalize_language_tag(language):

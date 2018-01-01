@@ -396,8 +396,8 @@ General configuration
 
    Each entry gives a sufficient condition to ignore the
    :confval:`smart_quotes` setting and deactivate the Smart Quotes transform.
-   Keys are ``'builders'`` or names (with an extra ``s``) of configuration
-   settings.  The values are lists.
+   Accepted keys are as above ``'builders'`` or ``'languages'``.
+   The values are lists.
 
    .. note:: Currently, in case of invocation of :program:`make` with multiple
       targets, the first target name is the only one which is tested against
