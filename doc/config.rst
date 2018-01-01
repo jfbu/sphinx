@@ -369,9 +369,10 @@ General configuration
       (see :confval:`smartquotes_excludes`.)
 
    A `docutils.conf`__ file located in the configuration directory (or a
-   global :file:`~/.docutils` file) will be obeyed if it deactivates smart
-   quotes.  Reciprocally, if Sphinx own :confval:`smart_quotes` is set to
-   ``False``, then smart quotes are deactivated.
+   global :file:`~/.docutils` file) is obeyed unconditionally if it
+   *deactivates* smart quotes.  But if it *activates* them, then the setting
+   of the :confval:`smart_quotes` build configuration file variable setting
+   prevails.
 
    __ http://docutils.sourceforge.net/docs/user/config.html
 
@@ -391,16 +392,21 @@ General configuration
 
    This is a ``dict`` whose default is::
 
-     {'language': ['ja'], 'builder': ['man', 'text']}
+     {'languages': ['ja'], 'builders': ['man', 'text']}
 
-   It gives sufficient condition to ignore the :confval:`smart_quotes` setting
-   and deactivate the Smart Quotes transform.  The keys must be ``'builder'``
-   or names of configuration settings.  The values are lists.  In case of
-   invocation of ``make`` with multiple targets, the first builder name is the
-   only one which is tested and decides for all.  Also, after ``make html`` one
-   should issue ``make text O="-E"`` to force the re-parsing of source
-   files. On the other hand as ``sphinx-build`` by default caches the parsed
-   source files per builder, it does not have this issue.
+   Each entry gives a sufficient condition to ignore the
+   :confval:`smart_quotes` setting and deactivate the Smart Quotes transform.
+   Keys are ``'builders'`` or names (with an extra ``s``) of configuration
+   settings.  The values are lists.
+
+   .. note:: Currently, in case of invocation of :program:`make` with multiple
+      targets, the first target name is the only one which is tested against
+      the ``'builders'`` entry and it decides for all.  Also, a ``make text``
+      following ``make html`` needs to be issued in the form ``make text
+      O="-E"`` to force re-parsing of source files, as the cached ones are
+      already transformed.  On the other hand the issue does not arise with
+      direct usage of :program:`sphinx-build` as it caches
+      (in its default usage) the parsed source files in per builder locations.
 
    .. versionadded:: 1.6.6
 

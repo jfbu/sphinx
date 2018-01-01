@@ -134,8 +134,8 @@ class Config(object):
         tls_cacerts = (None, 'env'),
         smart_quotes = (True, 'env'),
         smartquotes_action = ('qDe', 'env'),
-        smartquotes_excludes = ({'language': ['ja'],
-                                 'builder': ['man', 'text']},
+        smartquotes_excludes = ({'languages': ['ja'],
+                                 'builders': ['man', 'text']},
                                 'env'),
     )  # type: Dict[unicode, Tuple]
 

@@ -20,6 +20,7 @@ import warnings
 from os import path
 from copy import copy
 from collections import defaultdict
+from contextlib import contextmanager
 
 from six import BytesIO, itervalues, class_types, next, iteritems
 from six.moves import cPickle as pickle
@@ -46,7 +47,7 @@ from sphinx.util.parallel import ParallelTasks, parallel_available, make_chunks
 from sphinx.util.websupport import is_commentable
 from sphinx.errors import SphinxError, ExtensionError
 from sphinx.locale import __
-from sphinx.transforms import SphinxTransformer
+from sphinx.transforms import SphinxTransformer, SphinxSmartQuotes
 from sphinx.versioning import add_uids, merge_doctrees
 from sphinx.deprecation import RemovedInSphinx17Warning, RemovedInSphinx20Warning
 from sphinx.environment.adapters.indexentries import IndexEntries
@@ -89,6 +90,18 @@ versioning_conditions = {
     'text': is_translatable,
     'commentable': is_commentable,
 }  # type: Dict[unicode, Union[bool, Callable]]
+
+
+@contextmanager
+def sphinx_smartquotes_action(env):
+    try:
+        original = SphinxSmartQuotes.smartquotes_action
+        setattr(SphinxSmartQuotes, 'smartquotes_action',
+                env.config.smartquotes_action)
+        yield
+        setattr(SphinxSmartQuotes, 'smartquotes_action', original)
+    except AttributeError:
+        yield
 
 
 class NoUri(Exception):
@@ -600,7 +613,8 @@ class BuildEnvironment(object):
             # remove all inventory entries for that file
             app.emit('env-purge-doc', self, docname)
             self.clear_doc(docname)
-            self.read_doc(docname, app)
+            with sphinx_smartquotes_action(self):
+                self.read_doc(docname, app)
 
     def _read_parallel(self, docnames, app, nproc):
         # type: (List[unicode], Sphinx, int) -> None
@@ -612,8 +626,9 @@ class BuildEnvironment(object):
         def read_process(docs):
             # type: (List[unicode]) -> unicode
             self.app = app
-            for docname in docs:
-                self.read_doc(docname, app)
+            with sphinx_smartquotes_action(self):
+                for docname in docs:
+                    self.read_doc(docname, app)
             # allow pickling self to send it back
             return BuildEnvironment.dumps(self)
 
@@ -681,25 +696,32 @@ class BuildEnvironment(object):
             if self.config.html_use_smartypants is not None:
                 warnings.warn("html_use_smartypants option is deprecated. Smart "
                               "quotes are on by default; if you want to disable "
-                              "them, use the smart_quotes option",
+                              "them, use the smart_quotes option.",
                               RemovedInSphinx17Warning)
                 self.settings['smart_quotes'] = self.config.html_use_smartypants
 
             # some conditions exclude smart quotes, overriding smart_quotes
             for valname, vallist in iteritems(self.config.smartquotes_excludes):
-                if valname == 'builder':
+                if valname == 'builders':
                     # this will work only for checking first build target
                     if self.app.builder.name in vallist:
                         self.settings['smart_quotes'] = False
                         break
+                elif valname == 'languages':
+                    if self.config.language in vallist:
+                        self.settings['smart_quotes'] = False
+                        break
                 else:
                     try:
-                        attr = getattr(self.config, valname)
+                        attr = getattr(self.config, valname[:-1])
                         if attr in vallist:
                             self.settings['smart_quotes'] = False
                             break
                     except AttributeError:
-                        pass
+                        warnings.warn("'%s' (from '%s' in smartquotes_excludes) "
+                                      "isn't a valid configuration variable. "
+                                      "Did you forget an ending 's'?"
+                                      % (valname[:-1], valname))
 
         # confirm selected language supports smart_quotes or not
         for tag in normalize_language_tag(language):
@@ -707,7 +729,6 @@ class BuildEnvironment(object):
                 break
         else:
             self.settings['smart_quotes'] = False
-        self.settings['smartquotes_action'] = self.config.smartquotes_action
 
         docutilsconf = path.join(self.srcdir, 'docutils.conf')
         # read docutils.conf from source dir, not from current dir
