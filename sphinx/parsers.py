@@ -53,7 +53,7 @@ class Parser(docutils.parsers.Parser):
         self.info = app.info
 
 
-class RSTParser(docutils.parsers.rst.Parser, Parser):
+class RSTParser(docutils.parsers.rst.Parser):
     """A reST parser customized for Sphinx."""
 
     def get_transforms(self):

@@ -100,8 +100,13 @@ class SphinxStandaloneReader(SphinxBaseReader):
 
     def __init__(self, app, parsers={}, *args, **kwargs):
         SphinxBaseReader.__init__(self, app, parsers, *args, **kwargs)
-        if app.env.settings['smart_quotes']:
-            self.transforms.append(SphinxSmartQuotes)
+        self.smart_quotes = app.env.settings['smart_quotes']
+
+    def get_transforms(self):
+        transforms = SphinxBaseReader.get_transforms(self)
+        if self.smart_quotes:
+            transforms.append(SphinxSmartQuotes)
+        return transforms
 
 
 class SphinxI18nReader(SphinxBaseReader):

@@ -96,10 +96,9 @@ versioning_conditions = {
 def sphinx_smartquotes_action(env):
     try:
         original = SphinxSmartQuotes.smartquotes_action
-        setattr(SphinxSmartQuotes, 'smartquotes_action',
-                env.config.smartquotes_action)
+        SphinxSmartQuotes.smartquotes_action = env.config.smartquotes_action
         yield
-        setattr(SphinxSmartQuotes, 'smartquotes_action', original)
+        SphinxSmartQuotes.smartquotes_action = original
     except AttributeError:
         yield
 
