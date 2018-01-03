@@ -5,7 +5,7 @@
 
     Input/Output files
 
-    :copyright: Copyright 2007-2017 by the Sphinx team, see AUTHORS.
+    :copyright: Copyright 2007-2018 by the Sphinx team, see AUTHORS.
     :license: BSD, see LICENSE for details.
 """
 import re
@@ -285,3 +285,9 @@ def read_doc(app, env, filename):
 def setup(app):
     app.registry.add_source_input('*', SphinxFileInput)
     app.registry.add_source_input('restructuredtext', SphinxRSTFileInput)
+
+    return {
+        'version': 'builtin',
+        'parallel_read_safe': True,
+        'parallel_write_safe': True,
+    }
