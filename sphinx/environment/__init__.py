@@ -696,11 +696,11 @@ class BuildEnvironment(object):
         language = self.config.language or 'en'
         self.settings['language_code'] = language
         if 'smart_quotes' not in self.settings:
-            self.settings['smart_quotes'] = self.config.smart_quotes
+            self.settings['smart_quotes'] = self.config.smartquotes
             if self.config.html_use_smartypants is not None:
                 warnings.warn("html_use_smartypants option is deprecated. Smart "
                               "quotes are on by default; if you want to disable "
-                              "them, use the smart_quotes option.",
+                              "them, use the smartquotes option.",
                               RemovedInSphinx17Warning)
                 self.settings['smart_quotes'] = self.config.html_use_smartypants
 

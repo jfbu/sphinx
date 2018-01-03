@@ -353,7 +353,7 @@ General configuration
 
    .. versionadded:: 1.3
 
-.. confval:: smart_quotes
+.. confval:: smartquotes
 
    If true, the `Docutils Smart Quotes transform`__, originally based on
    `SmartyPants`__ (limited to English) and currently applying to many
@@ -370,11 +370,11 @@ General configuration
 
    A `docutils.conf`__ file located in the configuration directory (or a
    global :file:`~/.docutils` file) is obeyed unconditionally if it
-   *deactivates* smart quotes.  But if it *activates* them, then the setting
-   of the :confval:`smart_quotes` build configuration file variable setting
-   prevails.
+   *deactivates* smart quotes via the corresponding `Docutils option`__.  But
+   if it *activates* them, then :confval:`smartquotes` does prevail.
 
    __ http://docutils.sourceforge.net/docs/user/config.html
+   __ http://docutils.sourceforge.net/docs/user/config.html#smart-quotes
 
 .. confval:: smartquotes_action
 
@@ -395,7 +395,7 @@ General configuration
      {'languages': ['ja'], 'builders': ['man', 'text']}
 
    Each entry gives a sufficient condition to ignore the
-   :confval:`smart_quotes` setting and deactivate the Smart Quotes transform.
+   :confval:`smartquotes` setting and deactivate the Smart Quotes transform.
    Accepted keys are as above ``'builders'`` or ``'languages'``.
    The values are lists.
 
@@ -845,7 +845,7 @@ that use Sphinx's HTMLWriter class.
    entities.  Default: ``True``.
 
    .. deprecated:: 1.6
-      To disable smart quotes, use rather :confval:`smart_quotes`.
+      To disable smart quotes, use rather :confval:`smartquotes`.
 
 .. confval:: html_add_permalinks
 

@@ -132,7 +132,7 @@ class Config(object):
 
         tls_verify = (True, 'env'),
         tls_cacerts = (None, 'env'),
-        smart_quotes = (True, 'env'),
+        smartquotes = (True, 'env'),
         smartquotes_action = ('qDe', 'env'),
         smartquotes_excludes = ({'languages': ['ja'],
                                  'builders': ['man', 'text']},
