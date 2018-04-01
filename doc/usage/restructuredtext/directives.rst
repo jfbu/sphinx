@@ -921,30 +921,26 @@ this reason, the following directive exists:
    in proportion to the observed shares in a first pass where the table cells
    are rendered at their natural "horizontal" widths.
 
-   By default, Sphinx uses a table layout with ``J`` for every column.
+   By default, Sphinx uses a table layout with ``L`` for every column.
 
    .. versionadded:: 0.3
 
    .. versionchanged:: 1.6
-      Merged cells may now contain multiple paragraphs and are much better
-      handled, thanks to custom Sphinx LaTeX macros. This novel situation
-      motivated the switch to ``J`` specifier and not ``L`` by default.
+      Merged cells may contain multiple paragraphs and are better rendered.
+      The default was modified to ``J``.
 
-   .. hint::
+      To specify the default add ``\newcolumntype{T}{<L, R, C, or J>}`` to
+      :confval:`latex_elements` ``'preamble'`` key.
 
-      Sphinx actually uses ``T`` specifier having done ``\newcolumntype{T}{J}``.
-      To revert to previous default, insert ``\newcolumntype{T}{L}`` in the
-      LaTeX preamble (see :confval:`latex_elements`).
+   .. versionchanged:: 1.8
+      Default is back to ``L`` (not ``J``) for tabulary tables.
 
-      A frequent issue with tabulary is that columns with little contents are
-      "squeezed". The minimal column width is a tabulary parameter called
-      ``\tymin``. You may set it globally in the LaTeX preamble via
-      ``\setlength{\tymin}{40pt}`` for example.
-
-      Else, use the :rst:dir:`tabularcolumns` directive with an explicit
-      ``p{40pt}`` (for example) for that column. You may use also ``l``
-      specifier but this makes the task of setting column widths more difficult
-      if some merged cell intersects that column.
+   A frequent issue with tabulary is with narrow columns: they look
+   "squeezed".  Either set globally the minimal width via for example
+   ``\setlength{\tymin}{40pt}`` in preamble, or use the
+   :rst:dir:`tabularcolumns` directive: ``p{40pt}`` locally.  The ``l``
+   specifier works too, but, if a merged cell encounters that column, it will
+   perturbate tabulary's computation of column widths
 
    .. warning::
 
