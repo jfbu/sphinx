@@ -467,7 +467,8 @@
  }
  {}% else clause of \ltx@ifundefined
 \ltx@ifundefined{sphinxtheindex}
- {\newenvironment{sphinxtheindex}{\begin{theindex}}{\end{theindex}}}%
+ {\newenvironment{sphinxtheindex}{\footnotesize\raggedright % since 1.8
+     \begin{theindex}}{\end{theindex}}}%
  {}% else clause of \ltx@ifundefined
 
 

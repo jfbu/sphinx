@@ -88,8 +88,10 @@
 % The memoir class already does this, so we don't duplicate it in that case.
 %
 \@ifclassloaded{memoir}
- {\newenvironment{sphinxtheindex}{\begin{theindex}}{\end{theindex}}}
+ {\newenvironment{sphinxtheindex}{\footnotesize\raggedright
+     \begin{theindex}}{\end{theindex}}}
  {\newenvironment{sphinxtheindex}{%
+    \footnotesize\raggedright % since 1.8
     \phantomsection % needed because no chapter, section, ... is created by theindex
     \begin{theindex}%
     \addcontentsline{toc}{section}{\indexname}}{\end{theindex}}}

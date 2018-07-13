@@ -39,6 +39,9 @@ Incompatible changes
   Please use ``app.add_js_file()`` instead.
 * #5072: Save environment object also with only new documents
 * #5035: qthelp builder allows dashes in :confval:`qthelp_namespace`
+* LaTeX: by default, ``sphinxtheindex`` environment does
+  ``\footnotesize\raggedright`` for better looking indices (something similar
+  was already default for Japanese documents).
 
 Deprecated
 ----------
@@ -143,6 +146,11 @@ Features added
   for mathjax
 * #4362: latex: Don't overwrite .tex file if document not changed
 * #1431: latex: Add alphanumeric enumerated list support
+* Extend to all projects not using the Sphinx LaTeX Makefile a workaround for
+  `issue rtfd/readthedocs.org#2857`__ about insufficient number of
+  ``pdflatex`` runs for index to show up in PDF bookmarks (refs: #3742)
+
+  __ https://github.com/rtfd/readthedocs.org/issues/2857
 
 Bugs fixed
 ----------

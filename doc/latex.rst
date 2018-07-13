@@ -457,6 +457,9 @@ Environments
 
   .. versionchanged:: 1.5
      formerly, the original environments were modified by Sphinx.
+  .. versionchanged:: 1.8
+     ``sphinxtheindex`` issues ``\footnotesize\raggedright` for better
+     looking indices.
 
 Miscellany
 ~~~~~~~~~~

@@ -1727,8 +1727,8 @@ the `Dublin Core metadata <http://dublincore.org/>`_.
 Options for LaTeX output
 ------------------------
 
-These options influence LaTeX output. Refer to :doc:`/latex` for more
-information.
+These options influence LaTeX output. For customization of LaTeX
+macros and environments, see also :doc:`/latex`.
 
 .. confval:: latex_engine
 
@@ -2108,11 +2108,16 @@ information.
            Remove unneeded ``{}`` after ``\\hrule``.
 
      ``'printindex'``
-        "printindex" call, the last thing in the file, default
-        ``'\\printindex'``.  Override if you want to generate the index
-        differently or append some content after the index. For example
-        ``'\\footnotesize\\raggedright\\printindex'`` is advisable when the
-        index is full of long entries.
+        "printindex" call, the last thing in the file.
+
+        .. versionchanged:: 1.8
+           The former default ``'\\printindex'`` is modified in order
+           to reduce by one the total number of needed ``pdflatex``
+           runs. This fixes an issue__ with automated online build
+           systems bypassing the Sphinx contributed LaTeX Makefile
+           and its usage of Latexmk.
+
+           __ https://github.com/rtfd/readthedocs.org/issues/2857
 
      ``'fvset'``
         Customization of ``fancyvrb`` LaTeX package. Defaults to

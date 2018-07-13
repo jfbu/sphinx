@@ -106,9 +106,11 @@
 % The memoir class already does this, so we don't duplicate it in that case.
 %
 \@ifclassloaded{memoir}
- {\newenvironment{sphinxtheindex}{\begin{theindex}}{\end{theindex}}}
+ {\newenvironment{sphinxtheindex}{\footnotesize\raggedright
+     \begin{theindex}}{\end{theindex}}}
  {\newenvironment{sphinxtheindex}{%
     \if@openright\cleardoublepage\else\clearpage\fi
+    \footnotesize\raggedright % since 1.8
     \phantomsection % needed as no chapter, section, ... created
     \begin{theindex}%
     \addcontentsline{toc}{chapter}{\indexname}}{\end{theindex}}}

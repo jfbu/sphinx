@@ -124,7 +124,12 @@ DEFAULT_SETTINGS = {
     'maketitle':       '\\maketitle',
     'tableofcontents': '\\sphinxtableofcontents',
     'atendofbody':     '',
-    'printindex':      '\\printindex',
+    # this definition helps reducing number of needed pdflatex runs:
+    'printindex':      r'''
+\IfFileExists{\jobname.ind}
+             {\printindex}
+             {\begin{sphinxtheindex}\end{sphinxtheindex}}
+''',
     'transition':      '\n\n\\bigskip\\hrule\\bigskip\n\n',
     'figure_align':    'htbp',
     'tocdepth':        '',
