@@ -61,6 +61,12 @@ latex_elements = {
 \usepackage[scaled]{helvet}
 \usepackage{courier}
 ''',
+    'substitutefont': r'''
+\usepackage{substitutefont}
+\substitutefont{LGR}{\rmdefault}{udidot}
+\substitutefont{LGR}{\sfdefault}{neohellenic}
+\substitutefont{LGR}{\ttdefault}{cmtt}
+''',
     'passoptionstopackages': '\\PassOptionsToPackage{svgnames}{xcolor}',
     'preamble': '\\DeclareUnicodeCharacter{229E}{\\ensuremath{\\boxplus}}',
     'fvset': '\\fvset{fontsize=auto}',

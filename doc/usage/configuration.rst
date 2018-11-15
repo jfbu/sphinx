@@ -2049,10 +2049,71 @@ information.
         .. versionchanged:: 1.2
            Defaults to ``''`` when the :confval:`language` uses the Cyrillic
            script.
-        .. versionchanged:: 1.5
-           Defaults to ``''`` when :confval:`latex_engine` is ``'xelatex'``.
-        .. versionchanged:: 1.6
-           Defaults to ``''`` also with ``'lualatex'``.
+        .. versionchanged:: 2.0
+           Defaults to using ``CMU Serif`` and associated sans and monospace
+           foncts, when :confval:`latex_engine` is  ``'xelatex'`` or
+           ``'lualatex'``.  This provides support for Cyrillic and Greek
+           scripts.
+
+     ``'alphabeta'``
+        The default is ``'\\usepackage{alphabeta}[2013/09/11]'`` and allows
+        individual Unicode Greek letters to show correctly in the PDF (also in
+        bookmarks), e.g.: ``:math:`α=\alpha``` renders as :math:`α=\alpha`
+        (the PDF version of this documentation uses package `mathpazo`, which
+        modifies the math font from the TeX default).
+        In text, the Greek letters will be typeset with the current font, and
+        are allowed in sectioning titles.  In math, as the given example shows,
+        they will use the math font as if input via their TeX macro-name.
+
+        .. note::
+
+           - With ``pdflatex`` such Unicode input in math of Greek letters only
+             works for those letters available in the TeX math Greek alphabet,
+             e.g. ``Ρ`` (U+03A1) if used in math will silently give a wrong
+             glyph.  Such Unicode letter is to be used in text only.
+
+           - With ``'xelatex'`` or ``'lualatex'``, the default is the empty
+             string. Use rather package ``unicode-math``.
+
+           - With ``platex`` (Japanese), the default is the empty string,
+             because the Greek letters are handled natively by the engine.
+
+        .. versionadded:: 2.0
+
+     ``'substitutefont'``
+        It serves, for ``pdflatex`` only, to provide font
+        substitutions to support Greek letters.  The default is the string:
+
+        .. code-block:: latex
+
+           \usepackage{substitutefont}
+           \substitutefont{LGR}{\rmdefault}{artemisia}
+           \substitutefont{LGR}{\sfdefault}{neohellenic}
+           \substitutefont{LGR}{\ttdefault}{cmtt} 
+
+        This is needed as the LaTeX ``times`` package does not provide Greek
+        letters for text. If you use ``'fontpkg'`` to set-up other fonts, you
+        can either leave this key as is or set it to something else, possibly
+        to the empty string if those fonts provide glyphs for Greek letters.
+        For example this PDF documentation (which uses ``mathpazo``) is with
+        ``udidot`` in place of ``artemisia`` above: this gives these glyphs
+        αβγδεζη...
+
+        This key can be set to the empty string if Greek letters are only in
+        math.
+
+        .. versionadded:: 2.0
+
+     ``'unicodemath'``
+        (``xelatex/lualatex`` only, ignored by other engines) You can set it
+        to ``'\\usepackage{unicode-math}\\setmathfont{...}'`` to specify an
+        OpenType Math font, or simply to allow Unicode input inside the contents
+        of the :rst:dir:`math` directive or role.
+
+        The default is currently empty to avoid unnecessary overhead.  This may
+        change in future.
+
+        .. versionadded:: 2.0
 
      ``'fncychap'``
         Inclusion of the "fncychap" package (which makes fancy chapter titles),
@@ -2130,13 +2191,15 @@ information.
         .. versionadded:: 1.2
 
      ``'fontenc'``
-        "fontenc" package inclusion, default ``'\\usepackage[T1]{fontenc}'``.
+        "fontenc" package inclusion, default ``'\\usepackage[LGR,T1]{fontenc}'``.
 
         .. versionchanged:: 1.5
            Defaults to ``'\\usepackage{fontspec}'`` when
            :confval:`latex_engine` is ``'xelatex'``.
         .. versionchanged:: 1.6
            ``'lualatex'`` also uses ``fontspec`` per default.
+        .. versionchanged:: 2.0
+           ``'pdflatex'`` also loads ``LGR`` encoding for Greek support.
 
      ``'geometry'``
         "geometry" package inclusion, the default definition is:
