@@ -16,6 +16,9 @@ Features added
 Bugs fixed
 ----------
 
+* #6511: LaTeX: Autonumbered list can not be configured to be alphanumeric
+  since Sphinx 1.8.0
+
 Testing
 --------
 

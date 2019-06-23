@@ -1973,6 +1973,21 @@ These options influence LaTeX output.
 
    .. versionadded:: 1.6
 
+.. confval:: latex_use_latexlistlabels
+
+   The default is ``False``: the labels of enumerated lists will use
+   letters or digits according to the source.  This is the behaviour since
+   release 1.8.0.
+
+   Setting to ``True`` means to let LaTeX decide the style of labels.  This
+   was the behaviour until release 1.8.0.  For an automatically numbered list
+   itself inside an item of a higher level list, this causes a problem due
+   to a-z letters allowing at most 26 items.  Setting to ``True`` may be
+   useful in conjunction with some dedicated LaTeX package such as
+   ``enumitem``.
+
+   .. versionadded:: 2.1.3
+
 .. confval:: latex_use_xindy
 
    If ``True``, the PDF build from the LaTeX files created by Sphinx
