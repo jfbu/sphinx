@@ -629,8 +629,6 @@ class LaTeXTranslator(SphinxTranslator):
             self.elements['contentsname'] = self.babel_renewcommand('\\contentsname',
                                                                     contentsname)
 
-        if self.config.latex_use_latexlistlabels:
-            self.elements['sphinxpkgoptions'] += ',latexlistlabels'
         if self.elements['maxlistdepth']:
             self.elements['sphinxpkgoptions'] += (',maxlistdepth=%s' %
                                                   self.elements['maxlistdepth'])

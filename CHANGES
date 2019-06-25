@@ -13,6 +13,9 @@ Deprecated
 Features added
 --------------
 
+* ``latexlistlabels`` boolean key for usage within
+  :ref:`LaTeX 'sphinxsetup' <latexsphinxsetup>` (refs: #6520, #6511)
+
 Bugs fixed
 ----------
 

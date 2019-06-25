@@ -522,13 +522,15 @@ macros may be significant.
 
 ``latexlistlabels``
     Defaults to ``false``.  It means that enumerated list items will follow
-    the format (alphabetical or numerical) from the source.  Setting to
-    ``true`` means to let LaTeX document class or dedicated package decide
-    of the style of enumeration according to nesting level.
+    the format (alphabetical or numerical) from the source.
+
+    Setting to ``true`` means to let LaTeX decide itself (depending on the
+    document class and language, and/or packages) the style of labels (this
+    was Sphinx behaviour prior to release 1.8.0).  This may be useful in
+    conjunction with some dedicated LaTeX package such as ``enumitem`` to
+    configure how enumerated lists are labeled, depending on nesting level.
 
     .. versionadded:: 2.1.3
-       Use this via raw latex directive for local modification.
-       Use rather :confval:`latex_use_latexlistlabels` for a global setting.
 
 .. _latexsphinxsetuphmargin:
 

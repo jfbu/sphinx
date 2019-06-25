@@ -484,7 +484,6 @@ def setup(app):
     app.add_config_value('latex_logo', None, None, [str])
     app.add_config_value('latex_appendices', [], None)
     app.add_config_value('latex_use_latex_multicolumn', False, None)
-    app.add_config_value('latex_use_latexlistlabels', False, None)
     app.add_config_value('latex_use_xindy', default_latex_use_xindy, None)
     app.add_config_value('latex_toplevel_sectioning', None, None,
                          ENUM(None, 'part', 'chapter', 'section'))
