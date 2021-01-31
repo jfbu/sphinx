@@ -1446,10 +1446,13 @@ def test_latex_labels(app, status, warning):
     assert (r'\caption{labeled figure}'
             r'\label{\detokenize{index:id1}}'
             r'\label{\detokenize{index:figure2}}'
+            r'\sphinxnameddest{\detokenize{figure2}}'
             r'\label{\detokenize{index:figure1}}'
+            r'\sphinxnameddest{\detokenize{figure1}}'
             r'\end{figure}' in result)
     assert (r'\caption{labeled figure}'
-            '\\label{\\detokenize{index:figure3}}\n'
+            '\\label{\\detokenize{index:figure3}}'
+            '\\sphinxnameddest{\\detokenize{figure3}}\n'
             '\\begin{sphinxlegend}\n\\sphinxAtStartPar\n'
             'with a legend\n\\end{sphinxlegend}\n'
             r'\end{figure}' in result)
@@ -1457,28 +1460,40 @@ def test_latex_labels(app, status, warning):
     # code-blocks
     assert (r'\def\sphinxLiteralBlockLabel{'
             r'\label{\detokenize{index:codeblock2}}'
-            r'\label{\detokenize{index:codeblock1}}}' in result)
+            r'\sphinxnameddest{\detokenize{codeblock2}}'
+            r'\label{\detokenize{index:codeblock1}}'
+            r'\sphinxnameddest{\detokenize{codeblock1}}' in result)
     assert (r'\def\sphinxLiteralBlockLabel{'
-            r'\label{\detokenize{index:codeblock3}}}' in result)
+            r'\label{\detokenize{index:codeblock3}}'
+            r'\sphinxnameddest{\detokenize{codeblock3}}' in result)
 
     # tables
     assert (r'\sphinxcaption{table caption}'
             r'\label{\detokenize{index:id2}}'
             r'\label{\detokenize{index:table2}}'
-            r'\label{\detokenize{index:table1}}' in result)
+            r'\sphinxnameddest{\detokenize{table2}}'
+            r'\label{\detokenize{index:table1}}'
+            r'\sphinxnameddest{\detokenize{table1}}' in result)
     assert (r'\sphinxcaption{table caption}'
-            r'\label{\detokenize{index:table3}}' in result)
+            r'\label{\detokenize{index:table3}}'
+            r'\sphinxnameddest{\detokenize{table3}}' in result)
 
     # sections
     assert ('\\chapter{subsection}\n'
             r'\label{\detokenize{index:subsection}}'
+            r'\sphinxnameddest{\detokenize{subsection}}'
             r'\label{\detokenize{index:section2}}'
-            r'\label{\detokenize{index:section1}}' in result)
+            r'\sphinxnameddest{\detokenize{section2}}'
+            r'\label{\detokenize{index:section1}}'
+            r'\sphinxnameddest{\detokenize{section1}}' in result)
     assert ('\\section{subsubsection}\n'
             r'\label{\detokenize{index:subsubsection}}'
-            r'\label{\detokenize{index:section3}}' in result)
+            r'\sphinxnameddest{\detokenize{subsubsection}}'
+            r'\label{\detokenize{index:section3}}'
+            r'\sphinxnameddest{\detokenize{section3}}' in result)
     assert ('\\subsection{otherdoc}\n'
             r'\label{\detokenize{otherdoc:otherdoc}}'
+            r'\sphinxnameddest{\detokenize{otherdoc}}'
             r'\label{\detokenize{otherdoc::doc}}' in result)
 
     # Embedded standalone hyperlink reference (refs: #5948)

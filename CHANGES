@@ -63,6 +63,7 @@ Features added
   dedent via no-argument ``:dedent:`` option
 * C++, also hyperlink operator overloads in expressions and alias declarations.
 * #8247: Allow production lists to refer to tokens from other production groups
+* #6276: LaTeX: Support external hyperlinking to a named destination within a PDF
 
 Bugs fixed
 ----------
@@ -115,7 +116,9 @@ Bugs fixed
   (or pdflatex and :confval:`latex_use_xindy` set to True) with memoir class
 * #8780: LaTeX: long words in narrow columns may not be hyphenated
 * #8788: LaTeX: ``\titleformat`` last argument in sphinx.sty should be
-  bracketed, not braced (and is anyhow not needed) 
+  bracketed, not braced (and is anyhow not needed)
+* #8807: LaTeX: todo directive inserts ``\label`` without a proper anchor point
+  (from ``\phantomsection`` or a counter stepping)
 
 Testing
 --------

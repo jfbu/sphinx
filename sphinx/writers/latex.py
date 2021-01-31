@@ -464,14 +464,22 @@ class LaTeXTranslator(SphinxTranslator):
         })
         return self.render('latex.tex_t', self.elements)
 
-    def hypertarget(self, id: str, withdoc: bool = True, anchor: bool = True) -> str:
+    def hypertarget(self, id: str,
+                    withdoc: bool = True,
+                    anchor: bool = True,
+                    isname: bool = False) -> str:
+        longid = id
         if withdoc:
-            id = self.curfilestack[-1] + ':' + id
+            longid = self.curfilestack[-1] + ':' + id
         return ('\\phantomsection' if anchor else '') + \
-            '\\label{%s}' % self.idescape(id)
+            '\\label{%s}' % self.idescape(longid) + \
+            ('\\sphinxnameddest{%s}' % self.idescape(id) if isname else '')
 
     def hypertarget_to(self, node: Element, anchor: bool = False) -> str:
-        labels = ''.join(self.hypertarget(node_id, anchor=False) for node_id in node['ids'])
+        labels = ''.join(self.hypertarget(node_id,
+                                          anchor=False,
+                                          isname=node_id in node['names'])
+                         for node_id in node['ids'])
         if anchor:
             return r'\phantomsection' + labels
         else:
