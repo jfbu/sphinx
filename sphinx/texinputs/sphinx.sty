@@ -419,7 +419,51 @@
 \ifdefined\directlua\let\sphinxAtStartPar\@empty\fi
 % user interface: options can be changed midway in a document!
 \newcommand\sphinxsetup[1]{\setkeys{sphinx}{#1}}
-
+% Support for absolute destination label, for example:
+%     http://example.com/doc.pdf#nameddest=my-target
+% The hyperref option destlabel is of no use because it would pick the name
+% from the *first* \label following a section title.  And \hypertarget is
+% not easy to use as one has to locate it before the title, else it
+% will link to below it.  Hence this approach.
+\AtBeginDocument{\let\HyperDestNameFilter\sphinxSetDestName}
+\def\sphinxSetDestName#1{%
+  \ltx@ifundefined{spxDL@#1}{#1}{\csname spxDL@#1\endcsname}%
+}%
+% the \protected to prevent premature expansion, e.g. \sphinxLiteralBlockLabel
+\protected\def\sphinxnameddest#1{%
+  % #1 from LaTeX writer is always wrapped in \detokenize.
+  % As #1 was generated in a way stripping the document name, duplicates
+  % are likely for automated labels; for example from todo directives
+  % which generate id1, id2, .... for each source file, but also because
+  % multiple documents may have section "Options" (for example).
+  % This feature is for manually inserted user chosen labels in sources,
+  % but we have anyhow to let \sphinxnameddest act only once on any given
+  % destination name, else there will be many pdftex warnings about
+  %     "the same identifier <id name> has been already used".
+  % The naming of anchor will be done as "first in (tex) first out (aux)"
+  % for reason of simplicity of LaTeX coding. Else we have to accumulate
+  % and deliver all in-one-go to aux file at end document keeping only
+  % the last usage of \sphinxnameddest for any given name.
+  % This is reason why latex.py emits \sphinxnameddest at the end of a
+  % sequence of multiple labels, assuming that a user added label in source
+  % is last after the automatically generated labels from titles.
+  \ltx@ifundefined{spxDL!#1}{%
+    \global\expandafter\let\csname spxDL!#1\endcsname\ltx@empty
+    \if@filesw % not really needed in Sphinx automated context
+    \begingroup
+    \edef\x{\endgroup%
+    % LaTeX will emit "multiply defined" warning if used multiple times
+    % times with same value of \@currentHref.  This would arise from
+    % \sphinxnameddest being used more than once and no \phantomsection
+    % or numbered structure increased \@currentHref in between
+    % MEMO: avoid defining any \spxDL@ prefixed macro, as this process
+    % creates macros with this prefix. Hyperref own prefix is HyDL for
+    % similar task (but see above why we could not use it).
+    \noexpand\write\@auxout{\string\@newl@bel{spxDL}{\@currentHref}{#1}}%
+    }\x%
+    \if@nobreak\ifvmode\nobreak\fi\fi
+    \fi}{}%
+}%
 
 %% ALPHANUMERIC LIST ITEMS
 \newcommand\sphinxsetlistlabels[5]
@@ -1627,7 +1671,11 @@
                      \csname\@backslashchar color@#2\endcsname }
 
 % the main dispatch for all types of notices
+% work around a problem with todo extension triggering usage of \label
+% without a proper anchor set-up via ref-stepping a counter (or \phantomsection)
+\newcounter{sphinxadmonition}
 \newenvironment{sphinxadmonition}[2]{% #1=type, #2=heading
+  \refstepcounter{sphinxadmonition}% in case extension triggers \label usage
   % can't use #1 directly in definition of end part
   \def\spx@noticetype {#1}%
   % set parameters of heavybox/lightbox
