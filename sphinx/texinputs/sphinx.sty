@@ -442,11 +442,9 @@
   %     "the same identifier <id name> has been already used".
   % The naming of anchor will be done as "first in (tex) first out (aux)"
   % for reason of simplicity of LaTeX coding. Else we have to accumulate
-  % and deliver all in-one-go to aux file at end document keeping only
-  % the last usage of \sphinxnameddest for any given name.
-  % This is reason why latex.py emits \sphinxnameddest at the end of a
-  % sequence of multiple labels, assuming that a user added label in source
-  % is last after the automatically generated labels from titles.
+  % and deliver all in-one-go to aux file at end document (because we can
+  % never know when done; or perhaps we could add in mark-up a macro to
+  % signal the end of \label chain).
   \ltx@ifundefined{spxDL!#1}{%
     \global\expandafter\let\csname spxDL!#1\endcsname\ltx@empty
     \if@filesw % not really needed in Sphinx automated context
