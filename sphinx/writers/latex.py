@@ -1080,7 +1080,7 @@ class LaTeXTranslator(SphinxTranslator):
         self.body.append(r'\end{description}' + CR)
 
     def visit_definition_list_item(self, node: Element) -> None:
-        pass
+        self.body.append(CR + r'\sphinxresetitemlabel')
 
     def depart_definition_list_item(self, node: Element) -> None:
         pass
@@ -1092,8 +1092,8 @@ class LaTeXTranslator(SphinxTranslator):
             ctx = r'\phantomsection'
             for node_id in node['ids']:
                 ctx += self.hypertarget(node_id, anchor=False)
-        ctx += r'}'
-        self.body.append(r'\sphinxlineitem{')
+        ctx += '}'
+        self.body.append(CR + r'\sphinxaddtoitemlabel{')
         self.context.append(ctx)
 
     def depart_term(self, node: Element) -> None:
@@ -1107,7 +1107,9 @@ class LaTeXTranslator(SphinxTranslator):
         self.body.append('{]}')
 
     def visit_definition(self, node: Element) -> None:
-        pass
+        # no CR after \sphinxlineitem, as a paragraph node will add
+        # one more and a blank line in source would cause extra whitespace
+        self.body.append(CR + r'\sphinxlineitem ')
 
     def depart_definition(self, node: Element) -> None:
         self.body.append(CR)
