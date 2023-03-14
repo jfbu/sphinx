@@ -1,0 +1,426 @@
+\ProvidesPackage{sphinxbreakablebox}[2023/03/16 v6.2.0 breakable variant of
+                                     \detokenize{\sphinxbox}
+                                     (fragile, not really tested, use at own risk)]
+% This Work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, in its
+% version 1.3c.  This version of this license is in
+% > <http://www.latex-project.org/lppl/lppl-1-3c.txt>
+% and the latest version of this license is in
+% > <http://www.latex-project.org/lppl.txt>
+% and version 1.3 or later is part of all distributions of
+% LaTeX version 2005/12/01 or later.
+% The Author of this Work is Jean-Francois B. (jfbu)
+% This Work consists of this file sphinxbreakablebox.sty
+% Its current version is to be found at
+% https://github.com/jfbu/sphinx/tree/wip_breakable_sphinxbox
+% as file sphinx/texinputs/sphinxbreakablebox.sty
+% It builds upon tools developed as part of the LaTeX maintenance
+% of the Sphinx project currently hosted at
+% https://github.com/sphinx-doc/sphinx
+
+% User can \renewcommand these:
+\def\sphinxbreakableboxcontinuationhint{%
+    \llap{\textcolor{gray}{$\m@th\hookrightarrow$ }}%
+}
+\def\sphinxbreakableboxinterboxsep{%
+  % This next line was added when testing with very long contents filling up a
+  % line, and helped avoid some Underfull hbox complaints of TeX.  Maybe it is
+  % not a good idea in general as usually TeX will find suitable stretch shrink
+  % on the line as the breakable box will not have a length exceeding a
+  % linewidth.  I ended up commenting it out, which also avoids having to add a
+  % macro to hold the 0.1pt to make it easily customizable.
+  %
+  % \nobreak\hskip0pt plus 0pt minus 0.1pt\relax
+  %
+  \discretionary{}{\copy\sphinxcontinuationbox}{}%
+}
+% MEMO: \sphinxcontinuationbox is a box register from sphinxlatexliterals.sty
+% which we can use.  It will be initialized at time of use by
+% \sphinxbreakablebox to contain expansion of \sphinxbreakableboxcontinuationhint.
+
+% Instructions:
+% You must be using Sphinx version at least 6.2.0.
+% 1) Add this file to your project.  Or work from an editable pip
+%    install of Sphinx on the branch where the wip_breakable_sphinxbox
+%    of my fork has been merged and then you skip step 2) and should
+%    go to step 3) directly.  Merging is conflict free as it simply
+%    adds this file, but touches nothing else of Sphinx LaTeX.
+% 2) * Add to conf.py
+%         latex_additional_files = ["sphinxbreakablebox.sty"]
+%      (or with the actual path to where you moved sphinxbreakablebox.sty)
+%    * An alternative is to add sphinxbreakablebox.sty to your LaTeX
+%      installation, e.g. in your texmf-local directory (assuming TeXLive)
+%      or in some "$HOME/.texmf" or "$HOME/Library/texmf" (mac os)
+%      for example as
+%        <texmf>/tex/latex/sphinxbreakablebox/sphinxbreakablebox.sty
+%      so that the file can be seen by LaTeX from any project.
+% 3) Extend latex_elements['preamble'] in conf.py like this:
+%     latex_elements = {
+%         'preamble': r"""
+%     \usepackage{sphinxbreakablebox}
+%     % Then add definitions using \sphinxbreakablebox.
+%     % See
+%     % https://www.sphinx-doc.org/en/master/latex.html#macros
+%     % for candidates to redefine.  Here is one:
+%     \protected\def\sphinxguilabel#1{%
+%         \sphinxbreakablebox[% put extra options here as per \sphinxbox doc
+%                             % the options of \sphinxbox at time of use will be
+%                             % automatically inherited
+%                            ]{#1}}
+%     """,
+%     }
+
+% Use at own risk: this is fragile untested and surely unmaintained code.
+% Its sole advantage is to build upon existing work done at Sphinx for
+% low-weight support of rounded boxes.
+
+% Breakable horizontal boxes are a difficult topic in LaTeX.  For related
+% discussion which motivated this see the comments at
+% https://github.com/sphinx-doc/sphinx/pull/11224
+
+% Notice that any solution based on soul/soulutf8 package will have probably
+% strong limitations.  Soul package tries to dissect the input into syllables
+% and later reconstruct it and this is very fragile.  Soul has long list of
+% built-in mark-up from TeX/LaTeX which its author hard-coded as known tokens,
+% and it knows nothing about Sphinx.  Perhaps your best bet is to use LuaLaTeX
+% engine and the lua-hl package:
+%     https://ctan.org/pkg/lua-ul
+% 
+% Then use preamble redefinition of \sphinxguilable for example, as above, but
+% using the commands of lua-ul.
+
+% Reasons for not merging this in Sphinx:
+% - the code is too fragile and imperfect,
+% - the whole idea of boxing individually each character means kerning
+%   and ligatures and hyphenation points are all lost
+% - PDF viewers have issues with next to next boxes of same color,
+%   even overlapping a bit did not help get rid of aliasing (?) artifacts.
+% - the code is too fragile (did I say that?) and is only a few hours hack.
+
+% \RequirePackage{sphinx}% if instructions above are followed not needed.
+% This file can not be used independently from sphinx.
+
+% To avoid potential clashes with future Sphinx, macros are defined
+% with \spx@jfbu@breakable@ prefix
+
+% These utilities will have to be used in a scope limiting context, else I
+% would have to add some macro to store and restore a given configuration
+% or radii, paddings and border widths.
+\def\spx@jfbu@breakable@openright{%
+    \spx@boxes@border@right      \z@
+    \spx@boxes@padding@right     \z@
+    \spx@boxes@radius@topright   \z@
+    \spx@boxes@radius@bottomright\z@
+    % An external shadow if on right works fine; does not work if on left.
+    %
+    % An inset shadow is supported only by rectangular boxes.
+    % We only need to cancel the x-shift for the intermediate ones.
+    \ifspx@boxes@withshadow
+        \ifspx@boxes@insetshadow
+           \ifdim\spx@boxes@shadow@xoffset<\z@
+                 \spx@boxes@shadow@xoffset=\z@
+           \fi
+        \fi
+    \fi
+    \spx@boxes@fcolorbox@setup@fcolorbox
+}%
+\def\spx@jfbu@breakable@openleft{%
+    \spx@boxes@border@left      \z@
+    \spx@boxes@padding@left     \z@
+    \spx@boxes@radius@topleft   \z@
+    \spx@boxes@radius@bottomleft\z@
+    \ifspx@boxes@withshadow
+        \ifspx@boxes@insetshadow
+           \ifdim\spx@boxes@shadow@xoffset>\z@
+                 \spx@boxes@shadow@xoffset=\z@
+           \fi
+        \fi
+    \fi
+    \spx@boxes@fcolorbox@setup@fcolorbox
+}%
+\def\spx@jfbu@breakable@openboth{%
+    \spx@boxes@border@left       \z@
+    \spx@boxes@border@right      \z@
+    \spx@boxes@padding@left      \z@
+    \spx@boxes@padding@right     \z@
+    \spx@boxes@radius@topright   \z@
+    \spx@boxes@radius@bottomright\z@
+    \spx@boxes@radius@topleft    \z@
+    \spx@boxes@radius@bottomleft \z@
+    \ifspx@boxes@withshadow
+        \ifspx@boxes@insetshadow
+            \spx@boxes@shadow@xoffset\z@
+        \fi
+    \fi
+    \def\spx@boxes@fcolorbox{\spx@boxes@fcolorbox@rectangle}%
+}%
+
+\catcode`Z=3 % safe delimiter
+% Note that \sphinxbreakablebox fetches its #2 input argument so no \verb is
+% allowed inside.  But Sphinx mark-up needing catcode changes uses \scantokens
+% anyhow.  #2 can be empty without breaking the macro.  It can also be a single
+% character.
+\newcommand\sphinxbreakablebox[2][]{% #1 stands for the options, they are... optional!
+  \leavevmode
+  \begingroup
+    \sbox\sphinxcontinuationbox {\sphinxbreakableboxcontinuationhint}%
+    \sphinxboxsetup{#1}%
+    \spx@boxes@fcolorbox@setup
+        {box}
+        {sphinxboxBorderColor}
+        {sphinxboxBgColor}
+        {sphinxboxShadowColor}%
+    % Mechanism for openright-openboth-...-openboth-openleft
+    % It has to cater for input with only a single character.
+    % Turns out I added compatibility with empty input also.
+    % Globally defined for matter of recursion used in a
+    % crazy subbranch, and also due to the grouping added
+    % to limit scope of the open{right,both,left} (see remark above)
+    \gdef\spx@jfbu@breakable@setboxtype{%
+        \spx@jfbu@breakable@openright
+        % Using some \let as an \ifx test done in \spx@jfbu@breakable@check.
+        % I should have opted for some less hacky way there.
+        \global\let\spx@jfbu@breakable@setboxtype\spx@jfbu@breakable@openboth
+    }%
+    \spx@jfbu@breakable@a #2Z%
+}
+\def\spx@jfbu@breakable@a{\futurelet\spx@nexttoken\spx@jfbu@breakable@b}
+\def\spx@jfbu@breakable@b{%
+    % let's add some overhead and check also for situation which can arise
+    % only from empty input or input such as {{}}
+    % (cf \spx@jfbu@breakable@caseii) or \foo{{}} in argument
+    % (cf \spx@jfbu@breakable@casei@crazystuff)
+    \ifx\spx@nexttoken Z%
+      \def\next{\spx@jfbu@breakable@mainloop{}}%
+    \else
+    \ifcat\noexpand\spx@nexttoken\relax
+      \def\next{\spx@jfbu@breakable@casei}%
+      % as this is the most annoying branch its code is given last below
+    \else
+    \ifx\spx@nexttoken\bgroup
+      % naked braced material, should never happen in Sphinx I think
+      % we will handle this by removing the brace pair and start again
+      \def\next{\spx@jfbu@breakable@caseii}%
+    \else
+    \ifx\spx@nexttoken\@sptoken
+      % a space, so it was following some character or {} and
+      % we will handle this basically as we handle a single character
+      \def\next{\spx@jfbu@breakable@caseiii}%
+    \else
+      % hopefully some character token
+      \def\next{\spx@jfbu@breakable@mainloop}%
+    \fi\fi\fi\fi
+    \next
+}%
+%
+% some braced material; impossible in Sphinx a priori.  Unbrace and proceed.
+% This is catastrophic if e.g. input is {\Large foo}.   Although I think no such
+% mark-up comes from Sphinx, expanding for example \sphinxoptional would
+% create it (see below discussion of \sphinxoptional).
+\def\spx@jfbu@breakable@caseii#1{\spx@jfbu@breakable@a #1}
+% handle the blank space
+\@firstofone{\def\spx@jfbu@breakable@caseiii} {\spx@jfbu@breakable@mainloop{ }}
+% the simple case
+\def\spx@jfbu@breakable@mainloop #1{%
+    % need to check if at end; and add a strut to equalize heights
+    % \strut first in case of size changing command in #1, we don't
+    % want this \strut to be affected.  But likely if you suddenly
+    % use some large font in the midst of it, the box pieces will not
+    % have matching heights and depths.
+    \def\spx@temp{{\strut#1}}%
+    \futurelet\spx@nexttoken\spx@jfbu@breakable@check
+}
+\let\spx@jfbu@breakable@nestedhook\@empty
+\def\spx@jfbu@breakable@check{%
+    \ifx\spx@nexttoken Z%
+       % We fetched the last "character"
+       \def\spx@jfbu@breakable@again Z{\endgroup}%
+       \ifx\spx@jfbu@breakable@setboxtype\spx@jfbu@breakable@openboth
+         % this is at least the second handled "character"
+         \gdef\spx@jfbu@breakable@setboxtype{%
+             % shadow on right is counted in the box width (and will not
+             % protrude in margin if we are quite at end of line).
+             \spx@boxes@shadowinbboxtrue
+             \spx@jfbu@breakable@openleft
+          }%
+       \else
+         % This was a single "character" box; but this single character may
+         % have been arising from the nested call via @crazystuff.
+         % add a hook to avoid a complete border to be drawn in such case.
+         % This is too hacky style of coding the logic.
+         \gdef\spx@jfbu@breakable@setboxtype{%
+              \spx@boxes@shadowinbboxtrue
+              \spx@jfbu@breakable@nestedhook
+         }%
+       \fi
+    \fi
+    {% scope must be limited (see above remarks)
+     \spx@jfbu@breakable@setboxtype
+     \expandafter\spx@boxes@fcolorbox\spx@temp
+    }%
+    \spx@jfbu@breakable@again
+}
+\def\spx@jfbu@breakable@again{%
+    \sphinxbreakableboxinterboxsep
+    \futurelet\spx@nexttoken\spx@jfbu@breakable@b
+}
+% The more complex branch.  Let's filter out the ~ and assume any other
+% active byte must come from UTF-8 in pdflatex.  I did not have time to
+% check output from writers/latex.py.
+\def\spx@jfbu@breakable@casei #1{%
+    \ifx~#1%
+       \expandafter\spx@jfbu@breakable@mainloop
+    \else
+      \expandafter\spx@jfbu@breakable@casei@a
+    \fi #1%
+}%
+\def\spx@jfbu@breakable@casei@a #1{%
+    \ifcat\noexpand~\noexpand#1\relax% active character, we will ASSUME utf-8 !
+       \expandafter\spx@jfbu@breakable@casei@active
+    \else % some control sequence
+      \expandafter\spx@jfbu@breakable@casei@b
+    \fi #1%
+}%
+% assume active character (apart from already handled ~) can ONLY come from
+% utf-8 in pdflatex...  ...if not we are doomed here...  For example I guess
+% there will be breakage in French documents with !?;: (untested).  Use xelatex
+% or lualatex then.
+\def\spx@jfbu@breakable@casei@active#1{%
+    \expandafter\spx@jfbu@breakable@casei@active@a#1Z#1%
+}%
+% I use \def's not \let's only for easier debugging via log trace if needed.
+% But no debugging was needed: the method is more or less copied from
+% my existing code in sphinxlatexliterals.sty.
+\def\spx@jfbu@breakable@casei@active@a #1#2Z{%
+    \ifx\UTFviii@four@octets#1\def\next{\spx@jfbu@breakable@four}\else
+    \ifx\UTFviii@three@octet#1\def\next{\spx@jfbu@breakable@three}\else
+    \ifx\UTFviii@two@octets #1\def\next{\spx@jfbu@breakable@two}\else
+    \def\next{\spx@jfbu@breakable@mainloop}%
+    \fi\fi\fi
+    \next
+}%
+\def\spx@jfbu@breakable@two   #1#2{\spx@jfbu@breakable@mainloop{#1#2}}%
+\def\spx@jfbu@breakable@three #1#2#3{\spx@jfbu@breakable@mainloop{#1#2#3}}%
+\def\spx@jfbu@breakable@four  #1#2#3#4{\spx@jfbu@breakable@mainloop{#1#2#3#4}}%
+% Intercept some special cases... the list should surely be much longer.
+% In particular \sphinxupquote will be handled as the common lot, which is
+% very adventurous but worked in brief testing.
+\def\spx@jfbu@breakable@casei@b #1{%
+    \ifx\sphinxhref#1%
+        \def\next{\spx@jfbu@breakable@casei@href}%
+    \else
+        \ifx\sphinxoptional#1%
+          \def\next{\spx@jfbu@breakable@casei@macro@and@arg}%
+        \else
+          \def\next{\spx@jfbu@breakable@casei@c}%
+        \fi
+    \fi \next #1%
+}%
+\def\spx@jfbu@breakable@casei@c #1#2{%
+    % **assume** #1 is
+    % - a **one-argument** macro, doing only some font-switching, and
+    %   no insertion of extras, typically \textbf.
+    % - or perhaps some escape of a special character, for example
+    %   \sphinxhyphen{}.  I think is then always followed by {} from Sphinx
+    %   mark-up. TODO: check if the case
+    \def\spx@tempa{#1}%
+    \def\spx@tempb{#2}%
+    % then dispatch to crazy nested usage of the whole thing!
+    \futurelet\spx@nexttoken\spx@jfbu@breakable@casei@crazystuff
+}
+% \sphinxhref has two arguments
+\def\spx@jfbu@breakable@casei@href #1#2#3{%
+    % It is rather **incredible** that this works, the \sphinxhref will be applied
+    % with its second argument replaced by a nested use of \sphinxbreakablebox
+    % or rather its subcore loop starting with \spx@jfbu@breakable@a
+    % Hair-rising when one sees the \everyeof/\scantokens business of \sphinxhref!
+    \def\spx@tempa{#1{#2}}%
+    \def\spx@tempb{#3}%
+    \futurelet\spx@nexttoken\spx@jfbu@breakable@casei@crazystuff
+}
+% The default sphinxoptional does 
+% \textnormal{\Large[}}{#1}\hspace{0.5mm}{\textnormal{\Large]}}
+% The \Large and \hspace are annoying to us, we need here to take a branch
+% very different from the crazy \spx@jfbu@breakable@casei@crazystuff below
+% let's simply gather the macro and its argument and treat it as one
+% unbreakable unit.
+% \Large[ is bigger than the reserved space for \strut.
+% Oh well, I don't want to spend ages on this, so:
+\def\spx@jfbu@breakable@casei@macro@and@arg #1#2{%
+    % this is awful and incomplete
+    \spx@jfbu@breakable@mainloop{{\let\Large\empty#1{#2}}}%
+}%
+% Some completely crazy method here
+\def\spx@jfbu@breakable@casei@crazystuff{%
+    \if\relax\detokenize\expandafter{\spx@tempb}\relax
+       % Seems #1 is some latex escape of a special character, as it was
+       % followed by {}.  Attention that \sphinxhyphen is defined to gobble the
+       % {}, so at least to handle this case right, we insert the {} again.
+       % Also attention that some other \foo {} mark-up may arise from
+       % Sphinx such as \item {} but it seems unlikely in this context.
+       \def\next{\expandafter\spx@jfbu@breakable@mainloop\expandafter{\spx@tempa{}}}%
+    \else
+       % #1 (i.e. now the contents of \spx@tempa)
+       % was some macro with a non-empty argument, try something crazy.
+       % I made the code robust against some stuff such as {{{}}}
+       % as \spx@jfbu@breakable@b now guards against such thing.
+       % Important:
+       % - Utter breakage if #1 is a multiple-argument macro
+       % - Should work if #1 is some \textit for example.  Hopefully.
+       % - The command #1 should not do any insertion of characters, or spaces,
+       %   as those will not be boxed... so in fact the allowed things
+       %   are a short list and I should have rather filtered them out
+       %   especially, rather than ending here generically.  Very bad.
+       % This is a local \let, so if recursing the method or recovering
+       % should work ... not tested but could work.
+       \let\spx@jfbu@breakable@@setboxtype\spx@jfbu@breakable@setboxtype
+       {% the recursive routine is responsible for emitting
+        % \spx@jfbu@breakable@setboxtype and this has been tested at start,
+        % middle, end, or alone.
+        %
+        % The encapsulation into @crazy@stuff is a preventive measure
+        % in case \spx@tempa is \sphinxupquote as it does \scantokens
+        % so @, and more annoyingly funny Z would require special extra tricks.
+        % We do need a \makeatletter else use here a macro with no @...
+        \makeatletter\spx@tempa{\spx@jfbu@breakable@crazy@stuff}%
+       }%
+       \ifx\spx@nexttoken Z%
+         % nothing more to do: we fetched everything and the nested call did
+         % the appropriate closing box drawing already.
+         \def\next Z{\endgroup}%
+       \else
+         % not at the end but we handled some contents already, however if
+         % the #2 (\spx@tempb) expanded to a lone character (or none)
+         % turns out that the \spx@jfbu@breakable@setboxtype was not
+         % appropriately updated (cf @nestedhook stuff), so we need to do it here.
+         \global\let\spx@jfbu@breakable@setboxtype\spx@jfbu@breakable@openboth
+         \def\next{\spx@jfbu@breakable@again}%
+       \fi
+    \fi
+    \next
+}
+\def\spx@jfbu@breakable@crazy@stuff{% imagine this as argument of \spx@tempa
+                                    % above hence the indentation
+                   \begingroup
+                   \ifx\spx@nexttoken Z%
+                     % this was last "character" so allow subroutine to
+                     % do the appropriate closing via openleft or no open at
+                     % at all (e.g. \sphinxbreakablebox{\texttt{foo}} case)
+                   \else
+                     % not last, hack \spx@boxes@shadowinbboxtrue into actually
+                     % not include the shadow in bbox.
+                     \let\spx@boxes@shadowinbboxtrue\spx@boxes@shadowinbboxfalse
+                     % and hack \spx@jfbu@breakable@openleft to be open both
+                     % same remark about \let vs \def
+                     \let\spx@jfbu@breakable@openleft\spx@jfbu@breakable@openboth
+                     % will get executed only if only one (or zero) "character"
+                     % next or e.g. \spx@tempb expands to {}
+                     \def\spx@jfbu@breakable@nestedhook{\spx@jfbu@breakable@@setboxtype}%
+                   \fi
+                   % the \endgroup will come from the ending of the subroutine
+                   \expandafter\spx@jfbu@breakable@a\spx@tempb Z%
+                  }%
+
+\catcode`Z 11 % normal letter catcode
+
+\endinput
