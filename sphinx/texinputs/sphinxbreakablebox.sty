@@ -1,4 +1,4 @@
-\ProvidesPackage{sphinxbreakablebox}[2023/03/16 v6.2.0 breakable variant of
+\ProvidesPackage{sphinxbreakablebox}[2023/03/17 v6.2.0 breakable variant of
                                      \detokenize{\sphinxbox}
                                      (fragile, not really tested, use at own risk)]
 % This Work may be distributed and/or modified under the
@@ -264,34 +264,55 @@
     \sphinxbreakableboxinterboxsep
     \futurelet\spx@nexttoken\spx@jfbu@breakable@b
 }
-% The more complex branch.  Let's filter out the ~ and assume any other
-% active byte must come from UTF-8 in pdflatex.  I did not have time to
-% check output from writers/latex.py.
+% The more complex branch.  Let's filter out special tokens coming out from
+% the TeX escape done by sphinx.util.texescape; also we will catch \( which is
+% used for some such TeX escapes.  Other escapes are control sequences
+% followed by a {}, those are caught further down in the crazy stuff.
 \def\spx@jfbu@breakable@casei #1{%
-    \ifx~#1%
-       \expandafter\spx@jfbu@breakable@mainloop
+    \in@{#1}{\$\%\&\#\_\{\}}%
+    \ifin@
+      \def\next{\spx@jfbu@breakable@mainloop}%
     \else
-      \expandafter\spx@jfbu@breakable@casei@a
-    \fi #1%
+      \ifx#1\(%
+        \def\next{\spx@jfbu@breakable@casei@ltxmath}%
+      \else
+        \def\next{\spx@jfbu@breakable@casei@a}%
+      \fi
+    \fi \next #1%
 }%
+% Assume this was really \( token which comes from sphinx.util.texescape hence
+% is matched.
+\def\spx@jfbu@breakable@casei@ltxmath\(#1\){\spx@jfbu@breakable@mainloop{\(#1\)}}
+% Test for some active character
 \def\spx@jfbu@breakable@casei@a #1{%
-    \ifcat\noexpand~\noexpand#1\relax% active character, we will ASSUME utf-8 !
+    \ifcat\noexpand~\noexpand#1\relax% active character
        \expandafter\spx@jfbu@breakable@casei@active
     \else % some control sequence
       \expandafter\spx@jfbu@breakable@casei@b
     \fi #1%
 }%
-% assume active character (apart from already handled ~) can ONLY come from
-% utf-8 in pdflatex...  ...if not we are doomed here...  For example I guess
-% there will be breakage in French documents with !?;: (untested).  Use xelatex
-% or lualatex then.
+% Try to distinguish genuine active characters from LaTeX's UTF-8 encoding
+% support in (pdf)latex.  I don't have time for rekindling my knowledge here,
+% simply check if we are handling a byte of code <128.
+% Active characters may come from babel shorthands, e.g. in French !?:; which
+% add extra spacing: this will work in the box as well.  Inline literals
+% add a \sphinxupquote wrapper which redefines active . , ; ? ! / so in such
+% case as testing confirmed, if one is crazy enough to let \sphinxcode use
+% a \sphinxbreakablebox, only the : will add extra space to its left.
 \def\spx@jfbu@breakable@casei@active#1{%
-    \expandafter\spx@jfbu@breakable@casei@active@a#1Z#1%
+    \ifnum`#1<128
+      \expandafter\spx@jfbu@breakable@mainloop
+    \else % assume UTF-8...
+      \expandafter\spx@jfbu@breakable@casei@active@a
+    \fi #1%
+}%
+\def\spx@jfbu@breakable@casei@active@a #1{%
+    \expandafter\spx@jfbu@breakable@casei@active@b#1{}{}{}{}{}{}{}{}{}{}Z#1%
 }%
 % I use \def's not \let's only for easier debugging via log trace if needed.
 % But no debugging was needed: the method is more or less copied from
 % my existing code in sphinxlatexliterals.sty.
-\def\spx@jfbu@breakable@casei@active@a #1#2Z{%
+\def\spx@jfbu@breakable@casei@active@b #1#2Z{%
     \ifx\UTFviii@four@octets#1\def\next{\spx@jfbu@breakable@four}\else
     \ifx\UTFviii@three@octet#1\def\next{\spx@jfbu@breakable@three}\else
     \ifx\UTFviii@two@octets #1\def\next{\spx@jfbu@breakable@two}\else
@@ -320,9 +341,8 @@
     % **assume** #1 is
     % - a **one-argument** macro, doing only some font-switching, and
     %   no insertion of extras, typically \textbf.
-    % - or perhaps some escape of a special character, for example
-    %   \sphinxhyphen{}.  I think is then always followed by {} from Sphinx
-    %   mark-up. TODO: check if the case
+    % - or perhaps some escape of a special character which Sphinx outputs
+    %   as  \controlsequence{}, e.g. \sphinxhyphen{}.
     \def\spx@tempa{#1}%
     \def\spx@tempb{#2}%
     % then dispatch to crazy nested usage of the whole thing!
