@@ -163,8 +163,8 @@
 \def\spx@jfbu@breakable@openright{%
     \spx@boxes@border@right      \z@
     \spx@boxes@padding@right     \z@
-    \spx@boxes@radius@topright   \z@
-    \spx@boxes@radius@bottomright\z@
+    \spx@boxes@radius@topright@x   \z@ \spx@boxes@radius@topright@y   \z@
+    \spx@boxes@radius@bottomright@x\z@ \spx@boxes@radius@bottomright@y\z@
     % An external shadow if on right works fine; does not work if on left.
     %
     % An inset shadow is supported only by rectangular boxes.
@@ -181,8 +181,8 @@
 \def\spx@jfbu@breakable@openleft{%
     \spx@boxes@border@left      \z@
     \spx@boxes@padding@left     \z@
-    \spx@boxes@radius@topleft   \z@
-    \spx@boxes@radius@bottomleft\z@
+    \spx@boxes@radius@topleft@x   \z@ \spx@boxes@radius@topleft@y   \z@
+    \spx@boxes@radius@bottomleft@x\z@ \spx@boxes@radius@bottomleft@y\z@
     \ifspx@boxes@withshadow
         \ifspx@boxes@insetshadow
            \ifdim\spx@boxes@shadow@xoffset>\z@
@@ -197,10 +197,10 @@
     \spx@boxes@border@right      \z@
     \spx@boxes@padding@left      \z@
     \spx@boxes@padding@right     \z@
-    \spx@boxes@radius@topright   \z@
-    \spx@boxes@radius@bottomright\z@
-    \spx@boxes@radius@topleft    \z@
-    \spx@boxes@radius@bottomleft \z@
+    \spx@boxes@radius@topright@x   \z@ \spx@boxes@radius@topright@y   \z@
+    \spx@boxes@radius@bottomright@x\z@ \spx@boxes@radius@bottomright@y\z@
+    \spx@boxes@radius@topleft@x   \z@ \spx@boxes@radius@topleft@y   \z@
+    \spx@boxes@radius@bottomleft@x\z@ \spx@boxes@radius@bottomleft@y\z@
     \ifspx@boxes@withshadow
         \ifspx@boxes@insetshadow
             \spx@boxes@shadow@xoffset\z@
@@ -231,18 +231,17 @@
   \begingroup
     \let\spxnameuse\@nameuse
     \sbox\sphinxcontinuationbox {\sphinxbreakableboxcontinuationhint}%
-    \sphinxboxsetup{#1}%
-    \spx@boxes@fcolorbox@setup
-        {box}
-        {sphinxboxBorderColor}
-        {sphinxboxBgColor}
-        {sphinxboxShadowColor}%
-    \ifcsname spx@jfbu@breakable@isnested\endcsname
+    \ifcsname spx@boxes@sphinxbox@isnested\endcsname
+        % nested boxes reset all box options to be as the \sphinxboxsetup
+        % defaults, before applying their specific options
+        \spx@boxes@sphinxbox@reset
     \else
-       % not nested
-       \gdef\spx@jfbu@breakable@setboxtype{\spx@jfbu@breakable@startbox}%
-       \csname spx@jfbu@breakable@isnested\endcsname
-    \fi    
+        \gdef\spx@jfbu@breakable@setboxtype{\spx@jfbu@breakable@startbox}%
+        % top layer box, toggle the nested flag
+        \csname spx@boxes@sphinxbox@isnested\endcsname
+    \fi
+    \setkeys{sphinxbox}{#1}%
+    \spx@boxes@fcolorbox@setup{box}%
     \spx@jfbu@breakable@a #2Z%
     \endgroup
 }
