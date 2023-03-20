@@ -1,4 +1,4 @@
-\ProvidesPackage{sphinxbreakablebox}[2023/03/17 v6.2.0 breakable variant of
+\ProvidesPackage{sphinxbreakablebox}[2023/03/20 v6.2.0 breakable variant of
                                      \detokenize{\sphinxbox}
                                      (fragile, not really tested, use at own risk)]
 % This Work may be distributed and/or modified under the
@@ -225,24 +225,66 @@
 % assumed to be one-argument macros which only change some font properties and
 % do not induce any typesetting of their own, even spaces.  This is handled in
 % the "crazystuff" part, which is really crazy.
-\newcommand\sphinxbreakablebox[2][]{%
+%
+% Has to be kept closely in sync with upstream sphinxpackageboxes.sty \sphinxbox
+%
+\newcommand\sphinxbreakablebox[1][]{%
   % #1 stands for the options, they are... optional!
   \leavevmode
   \begingroup
-    \let\spxnameuse\@nameuse
-    \sbox\sphinxcontinuationbox {\sphinxbreakableboxcontinuationhint}%
     \ifcsname spx@boxes@sphinxbox@isnested\endcsname
-        % nested boxes reset all box options to be as the \sphinxboxsetup
-        % defaults, before applying their specific options
+        % nested inside a \sphinxbox, fall-back to non-breakable
         \spx@boxes@sphinxbox@reset
+        \def\next{\spx@jfbu@breakable@bailout}%
     \else
-        \gdef\spx@jfbu@breakable@setboxtype{\spx@jfbu@breakable@startbox}%
-        % top layer box, toggle the nested flag
-        \csname spx@boxes@sphinxbox@isnested\endcsname
+        \ifcsname spx@jfbu@breakable@isnested\endcsname
+            % nested inside a \sphinxbreakablebox
+            \spx@boxes@sphinxbox@reset
+        \else
+            % top layer box, do one-time initializations
+            %
+            % This is a bit daring and is supposed to catch a \sphinxbox
+            % hidden in some macro; as our control sequences from
+            % \newsphinxbox are defined via \def so ultimately resolve to
+            % \sphinxbox, they are correctly caught.
+            \def\sphinxbox{\sphinxbreakablebox}%
+            % (Brief testing gave positive result, with the exception of an
+            % explicit \foo from \newsphinbox used with some [...].  In that
+            % case our "crazystuff" branch will let \foo be applied to some
+            % input where the [...] will have been incorporated.)
+            \let\spxnameuse\@nameuse
+            \sbox\sphinxcontinuationbox {\sphinxbreakableboxcontinuationhint}%
+            % the top layer is the only one using specific starting code
+            % on first cell
+            \gdef\spx@jfbu@breakable@setboxtype{\spx@jfbu@breakable@startbox}%
+            % activate the nested flag for sub-boxes
+            \csname spx@jfbu@breakable@isnested\endcsname
+        \fi
+        % do use the breakable code
+        \def\next{\spx@jfbu@breakable@letsgo}%
     \fi
     \setkeys{sphinxbox}{#1}%
     \spx@boxes@fcolorbox@setup{box}%
-    \spx@jfbu@breakable@a #2Z%
+    \ifspx@box@withtextcolor\color{sphinxboxTextColor}\fi
+    \next
+}
+% extracted from upstream code of \sphinxbox
+\def\spx@jfbu@breakable@bailout{%
+    \spx@boxes@shadowinbboxtrue% inline sphinx boxes include shadow in bbox
+    \setbox0\hbox\bgroup\aftergroup\spx@boxes@sphinxbox@a
+    \afterassignment\spx@box@TeXextras
+    \let\next=%
+}
+% enter our breakable looping
+\def\spx@jfbu@breakable@letsgo#1{%
+    % let's execute TeXextra outside the loop (crossing fingers, but it would
+    % be easily breaking inside, as for example an \itshape\bfseries
+    % would pick the \bfseries alone in some cell; well perhaps it is not
+    % breaking (untested) but it surely would have unintended consequences
+    \spx@box@TeXextras
+    % and let's plunge into our loop; as we fetch our argument, \verb inside
+    % it will not work (and cause breakage)
+    \spx@jfbu@breakable@a #1Z%
     \endgroup
 }
 
