@@ -1484,6 +1484,7 @@ Macros
      :header: Name, ``maps argument #1 to:``
      :align: left
      :delim: ;
+     :class: longtable
 
      ``\sphinxstyleindexentry``;       ``\texttt{#1}``
      ``\sphinxstyleindexextra``;       ``(\emph{#1})`` (with a space upfront)
