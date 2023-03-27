@@ -1482,7 +1482,7 @@ Macros
 
   .. csv-table::
      :header: Name, ``maps argument #1 to:``
-     :align: left
+     :align: right
      :delim: ;
      :class: longtable
 
