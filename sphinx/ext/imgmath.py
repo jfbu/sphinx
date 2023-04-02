@@ -112,6 +112,7 @@ def ensure_tempdir(builder: Builder) -> str:
     """
     if not hasattr(builder, '_imgmath_tempdir'):
         builder._imgmath_tempdir = tempfile.mkdtemp()  # type: ignore
+        print(builder._imgmath_tempdir)
 
     return builder._imgmath_tempdir  # type: ignore
 
@@ -123,12 +124,38 @@ def compile_math(latex: str, builder: Builder) -> str:
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(latex)
 
+    if builder.config.imgmath_cache_latexfmt:
+        if not hasattr(builder, '_imgmath_fmtdone'):
+            # TODO: should we use the extra command arguments here?
+            # Should we try to support anything else than "latex"?
+            # Should a check be done that latex_command basename is latex?
+            # I tried initex but it dumps to the system-wide latex.fmt...
+            # Not sure if "etex -ini" works for example with MikTeX.
+            print("CREATION DU FORMAT")
+            command = ['etex', '-ini', '"&latex"', 'mylatex.ltx', 'math']
+            try:
+                subprocess.run(command, capture_output=True, cwd=tempdir,
+                               check=True)
+            except OSError as exc:
+                logger.warning(__('Failed to use "initex" for caching LaTeX preamble'))
+                raise InvokeError from exc
+            except CalledProcessError as exc:
+                raise MathExtError(__('initex errored while caching preamble'),
+                                   exc.stderr, exc.stdout) from exc
+            else:
+                builder._imgmath_fmtdone = True
+
     # build latex command; old versions of latex don't have the
     # --output-directory option, so we have to manually chdir to the
     # temp dir to run it.
     command = [builder.config.imgmath_latex, '--interaction=nonstopmode']
     # add custom args from the config file
     command.extend(builder.config.imgmath_latex_args)
+    if hasattr(builder, '_imgmath_fmtdone'):
+        # print("UTILISATION")
+        # TODO: check if possible to use 'latex' here in place of 'etex'
+        # so that perhaps we can use imgmath_latex
+        command = ['etex', '"&mylatex"']
     command.append('math.tex')
 
     try:
@@ -279,7 +306,8 @@ def clean_up_files(app: Sphinx, exc: Exception) -> None:
 
     if hasattr(app.builder, '_imgmath_tempdir'):
         try:
-            shutil.rmtree(app.builder._imgmath_tempdir)
+            pass
+            # shutil.rmtree(app.builder._imgmath_tempdir)
         except Exception:
             pass
 
@@ -386,5 +414,6 @@ def setup(app: Sphinx) -> dict[str, Any]:
     app.add_config_value('imgmath_add_tooltips', True, 'html')
     app.add_config_value('imgmath_font_size', 12, 'html')
     app.add_config_value('imgmath_embed', False, 'html', [bool])
+    app.add_config_value('imgmath_cache_latexfmt', False, 'html', [bool])
     app.connect('build-finished', clean_up_files)
     return {'version': sphinx.__display_version__, 'parallel_read_safe': True}
