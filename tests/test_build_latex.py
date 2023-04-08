@@ -95,7 +95,10 @@ def skip_if_stylefiles_notfound(testfunc):
     "engine,docclass",
     product(LATEX_ENGINES, DOCCLASSES),
 )
-@pytest.mark.sphinx('latex')
+@pytest.mark.sphinx('latex',
+                    confoverrides={
+                        'python_maximum_signature_line_length': 1,
+                    })
 def test_build_latex_doc(app, status, warning, engine, docclass):
     app.config.intersphinx_mapping = {
         'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
