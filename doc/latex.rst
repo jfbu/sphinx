@@ -245,6 +245,9 @@ Keys that you may want to override include:
 
    Default: ``''``
 
+   .. versionchanged:: 8.3.0
+      LaTeX macros in the content may have names using the ``@`` letter.
+
 ``'figure_align'``
    Latex figure float alignment. Whenever an image doesn't fit into the current
    page, it will be 'floated' into the next page but may be preceded by any
