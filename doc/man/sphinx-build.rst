@@ -126,8 +126,10 @@ Options
 .. option:: -j N, --jobs N
 
    Distribute the build over *N* processes in parallel, to make building on
-   multiprocessor machines more effective.  Note that not all parts and not all
-   builders of Sphinx can be parallelized.  If ``auto`` argument is given,
+   multiprocessor machines more effective.
+   This feature only works on systems supporting "fork". Windows is not supported.
+   Note that not all parts and not all builders of Sphinx can be parallelized.
+   If ``auto`` argument is given,
    Sphinx uses the number of CPUs as *N*. Defaults to 1.
 
    .. versionadded:: 1.2
@@ -139,7 +141,7 @@ Options
    .. versionchanged:: 6.2
       Add ``--jobs`` long option.
 
-.. option:: -c path, --config-dir path
+.. option:: -c path, --conf-dir path
 
    Don't look for the :file:`conf.py` in the source directory, but use the given
    configuration directory instead.  Note that various other files and paths
@@ -150,7 +152,7 @@ Options
    .. versionadded:: 0.3
 
    .. versionchanged:: 7.3
-      Add ``--config-dir`` long option.
+      Add ``--conf-dir`` long option.
 
 .. option:: -C, --isolated
 
