@@ -1,13 +1,19 @@
+from __future__ import annotations
+
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import docutils
 import pytest
 
+if TYPE_CHECKING:
+    from sphinx.testing.util import SphinxTestApp
+
 
 @pytest.mark.usefixtures('_http_teapot')
 @pytest.mark.sphinx('html', testroot='images')
-def test_html_remote_images(app):
+def test_html_remote_images(app: SphinxTestApp) -> None:
     app.build(force_all=True)
 
     result = (app.outdir / 'index.html').read_text(encoding='utf8')
@@ -19,7 +25,7 @@ def test_html_remote_images(app):
 
 
 @pytest.mark.sphinx('html', testroot='image-escape')
-def test_html_encoded_image(app):
+def test_html_encoded_image(app: SphinxTestApp) -> None:
     app.build(force_all=True)
 
     result = (app.outdir / 'index.html').read_text(encoding='utf8')
@@ -28,7 +34,7 @@ def test_html_encoded_image(app):
 
 
 @pytest.mark.sphinx('html', testroot='remote-logo')
-def test_html_remote_logo(app):
+def test_html_remote_logo(app: SphinxTestApp) -> None:
     app.build(force_all=True)
 
     result = (app.outdir / 'index.html').read_text(encoding='utf8')
@@ -42,7 +48,7 @@ def test_html_remote_logo(app):
 
 
 @pytest.mark.sphinx('html', testroot='local-logo')
-def test_html_local_logo(app):
+def test_html_local_logo(app: SphinxTestApp) -> None:
     app.build(force_all=True)
 
     result = (app.outdir / 'index.html').read_text(encoding='utf8')
@@ -53,7 +59,7 @@ def test_html_local_logo(app):
 
 
 @pytest.mark.sphinx('html', testroot='html_scaled_image_link')
-def test_html_scaled_image_link(app):
+def test_html_scaled_image_link(app: SphinxTestApp) -> None:
     app.build()
     context = (app.outdir / 'index.html').read_text(encoding='utf8')
 
@@ -61,26 +67,41 @@ def test_html_scaled_image_link(app):
     assert re.search('\n<img alt="_images/img.png" src="_images/img.png" />', context)
 
     # scaled_image_link
-    # Docutils 0.21 adds a newline before the closing </a> tag
-    closing_space = '\n' if docutils.__version_info__[:2] >= (0, 21) else ''
-    assert re.search(
-        '\n<a class="reference internal image-reference" href="_images/img.png">'
-        '<img alt="_images/img.png" src="_images/img.png" style="[^"]+" />'
-        f'{closing_space}</a>',
-        context,
-    )
+    if docutils.__version_info__[:2] >= (0, 22):
+        assert re.search(
+            '\n<a class="reference internal image-reference" href="_images/img.png">'
+            '<img alt="_images/img.png" height="[^"]+" src="_images/img.png" width="[^"]+" />'
+            '\n</a>',
+            context,
+        )
+    else:
+        # Docutils 0.21 adds a newline before the closing </a> tag
+        closing_space = '\n' if docutils.__version_info__[:2] >= (0, 21) else ''
+        assert re.search(
+            '\n<a class="reference internal image-reference" href="_images/img.png">'
+            '<img alt="_images/img.png" src="_images/img.png" style="[^"]+" />'
+            f'{closing_space}</a>',
+            context,
+        )
 
     # no-scaled-link class disables the feature
-    assert re.search(
-        '\n<img alt="_images/img.png" class="no-scaled-link"'
-        ' src="_images/img.png" style="[^"]+" />',
-        context,
-    )
+    if docutils.__version_info__[:2] >= (0, 22):
+        assert re.search(
+            '\n<img alt="_images/img.png" class="no-scaled-link"'
+            ' height="[^"]+" src="_images/img.png" width="[^"]+" />',
+            context,
+        )
+    else:
+        assert re.search(
+            '\n<img alt="_images/img.png" class="no-scaled-link"'
+            ' src="_images/img.png" style="[^"]+" />',
+            context,
+        )
 
 
 @pytest.mark.usefixtures('_http_teapot')
 @pytest.mark.sphinx('html', testroot='images')
-def test_copy_images(app):
+def test_copy_images(app: SphinxTestApp) -> None:
     app.build()
 
     images_dir = Path(app.outdir) / '_images'

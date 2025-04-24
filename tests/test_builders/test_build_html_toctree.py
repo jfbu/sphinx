@@ -1,16 +1,26 @@
 """Test the HTML builder and check output against XPath."""
 
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 import pytest
+
+from sphinx.builders.html import StandaloneHTMLBuilder
 
 from tests.test_builders.xpath_html_util import _intradocument_hyperlink_check
 from tests.test_builders.xpath_util import check_xpath
 
+if TYPE_CHECKING:
+    from sphinx.testing.util import SphinxTestApp
+
 
 @pytest.mark.sphinx('html', testroot='toctree-glob')
-def test_relations(app):
+def test_relations(app: SphinxTestApp) -> None:
     app.build(force_all=True)
+    assert isinstance(app.builder, StandaloneHTMLBuilder)  # type-checking
     assert app.builder.relations['index'] == [None, None, 'foo']
     assert app.builder.relations['foo'] == ['index', 'index', 'bar/index']
     assert app.builder.relations['bar/index'] == ['index', 'foo', 'bar/bar_1']
@@ -30,8 +40,9 @@ def test_relations(app):
 
 
 @pytest.mark.sphinx('singlehtml', testroot='toctree-empty')
-def test_singlehtml_toctree(app):
+def test_singlehtml_toctree(app: SphinxTestApp) -> None:
     app.build(force_all=True)
+    assert isinstance(app.builder, StandaloneHTMLBuilder)  # type-checking
     try:
         app.builder._get_local_toctree('index')
     except AttributeError:
@@ -43,7 +54,7 @@ def test_singlehtml_toctree(app):
     testroot='toctree',
     srcdir='numbered-toctree',
 )
-def test_numbered_toctree(app):
+def test_numbered_toctree(app: SphinxTestApp) -> None:
     # give argument to :numbered: option
     index = (app.srcdir / 'index.rst').read_text(encoding='utf8')
     index = re.sub(':numbered:.*', ':numbered: 1', index)
@@ -63,3 +74,24 @@ def test_numbered_toctree(app):
 def test_singlehtml_hyperlinks(app, cached_etree_parse, expect):
     app.build()
     check_xpath(cached_etree_parse(app.outdir / 'index.html'), 'index.html', *expect)
+
+
+@pytest.mark.sphinx(
+    'html',
+    testroot='toctree-multiple-parents',
+    confoverrides={'html_theme': 'alabaster'},
+)
+def test_toctree_multiple_parents(app, cached_etree_parse):
+    # The lexicographically greatest parent of the document in global toctree
+    # should be chosen, regardless of the order in which files are read
+    with patch.object(app.builder, '_read_serial') as m:
+        # Read files in reversed order
+        _read_serial = type(app.builder)._read_serial
+        m.side_effect = lambda docnames: _read_serial(app.builder, docnames[::-1])
+        app.build()
+        # Check if charlie is a child of delta in charlie.html
+        xpath_delta_children = (
+            ".//ul[@class='current']//a[@href='delta.html']/../ul/li//a"
+        )
+        etree = cached_etree_parse(app.outdir / 'charlie.html')
+        check_xpath(etree, 'charlie.html', xpath=xpath_delta_children, check='Charlie')
