@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from sphinx.config import Config
     from sphinx.domains import Domain
     from sphinx.environment import BuildEnvironment
+    from sphinx.ext.autodoc import _AutodocProcessDocstringListener
     from sphinx.ext.todo import todo_node
 
 
@@ -35,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class EventListener(NamedTuple):
     id: int
-    handler: Callable
+    handler: Callable[..., Any]
     priority: int
 
 
@@ -149,7 +150,7 @@ class EventManager:
         self,
         name: Literal['env-merge-info'],
         callback: Callable[
-            [Sphinx, BuildEnvironment, list[str], BuildEnvironment], None
+            [Sphinx, BuildEnvironment, Set[str], BuildEnvironment], None
         ],
         priority: int,
     ) -> int: ...
@@ -265,19 +266,7 @@ class EventManager:
     def connect(
         self,
         name: Literal['autodoc-process-docstring'],
-        callback: Callable[
-            [
-                Sphinx,
-                Literal[
-                    'module', 'class', 'exception', 'function', 'method', 'attribute'
-                ],
-                str,
-                Any,
-                dict[str, bool],
-                Sequence[str],
-            ],
-            None,
-        ],
+        callback: _AutodocProcessDocstringListener,
         priority: int,
     ) -> int: ...
 
@@ -375,7 +364,7 @@ class EventManager:
         priority: int,
     ) -> int: ...
 
-    def connect(self, name: str, callback: Callable, priority: int) -> int:
+    def connect(self, name: str, callback: Callable[..., Any], priority: int) -> int:
         """Connect a handler to specific event."""
         if name not in self.events:
             raise ExtensionError(__('Unknown event name: %s') % name)
@@ -397,7 +386,7 @@ class EventManager:
         name: str,
         *args: Any,
         allowed_exceptions: tuple[type[Exception], ...] = (),
-    ) -> list:
+    ) -> list[Any]:
         """Emit a Sphinx event."""
         # not every object likes to be repr()'d (think
         # random stuff coming via autodoc)

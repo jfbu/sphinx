@@ -1,14 +1,25 @@
 """Test the EventManager class."""
 
+from __future__ import annotations
+
+from types import SimpleNamespace
+from typing import TYPE_CHECKING
+
 import pytest
 
 from sphinx.errors import ExtensionError
 from sphinx.events import EventManager
 
+if TYPE_CHECKING:
+    from typing import NoReturn
 
-def test_event_priority():
+    from sphinx.application import Sphinx
+
+
+def test_event_priority() -> None:
     result = []
-    events = EventManager(object())  # pass an dummy object as an app
+    app = object()  # pass a dummy object as an app
+    events = EventManager(app)  # type: ignore[arg-type]
     events.connect('builder-inited', lambda app: result.append(1), priority=500)
     events.connect('builder-inited', lambda app: result.append(2), priority=500)
     # earlier
@@ -21,16 +32,12 @@ def test_event_priority():
     assert result == [3, 1, 2, 5, 4]
 
 
-class FakeApp:
-    def __init__(self, pdb: bool = False):
-        self.pdb = pdb
-
-
-def test_event_allowed_exceptions():
-    def raise_error(app):
+def test_event_allowed_exceptions() -> None:
+    def raise_error(app: Sphinx) -> NoReturn:
         raise RuntimeError
 
-    events = EventManager(FakeApp())  # pass an dummy object as an app
+    app = SimpleNamespace(pdb=False)  # pass a dummy object as an app
+    events = EventManager(app)  # type: ignore[arg-type]
     events.connect('builder-inited', raise_error, priority=500)
 
     # all errors are converted to ExtensionError
@@ -42,11 +49,12 @@ def test_event_allowed_exceptions():
         events.emit('builder-inited', allowed_exceptions=(RuntimeError,))
 
 
-def test_event_pdb():
-    def raise_error(app):
+def test_event_pdb() -> None:
+    def raise_error(app: Sphinx) -> NoReturn:
         raise RuntimeError
 
-    events = EventManager(FakeApp(pdb=True))  # pass an dummy object as an app
+    app = SimpleNamespace(pdb=True)  # pass a dummy object as an app
+    events = EventManager(app)  # type: ignore[arg-type]
     events.connect('builder-inited', raise_error, priority=500)
 
     # errors aren't converted

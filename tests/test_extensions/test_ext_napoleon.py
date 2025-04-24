@@ -1,5 +1,7 @@
 """Tests for :mod:`sphinx.ext.napoleon.__init__` module."""
 
+from __future__ import annotations
+
 import functools
 from collections import namedtuple
 from unittest import mock
@@ -11,9 +13,7 @@ from sphinx.ext.napoleon import Config, _process_docstring, _skip_member, setup
 
 
 def simple_decorator(f):
-    """
-    A simple decorator that does nothing, for tests to use.
-    """
+    """A simple decorator that does nothing, for tests to use."""
 
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
@@ -31,12 +31,12 @@ def _private_undoc():
     pass
 
 
-def __special_doc__():
+def __special_doc__():  # NoQA: N807
     """module.__special_doc__.DOCSTRING"""
     pass
 
 
-def __special_undoc__():
+def __special_undoc__():  # NoQA: N807
     pass
 
 
@@ -48,15 +48,15 @@ class SampleClass:
     def _private_undoc(self):
         pass
 
-    def __special_doc__(self):
+    def __special_doc__(self):  # NoQA: PLW3201
         """SampleClass.__special_doc__.DOCSTRING"""
         pass
 
-    def __special_undoc__(self):
+    def __special_undoc__(self):  # NoQA: PLW3201
         pass
 
     @simple_decorator
-    def __decorated_func__(self):
+    def __decorated_func__(self):  # NoQA: PLW3201
         """Doc"""
         pass
 
@@ -69,15 +69,15 @@ class SampleError(Exception):
     def _private_undoc(self):
         pass
 
-    def __special_doc__(self):
+    def __special_doc__(self):  # NoQA: PLW3201
         """SampleError.__special_doc__.DOCSTRING"""
         pass
 
-    def __special_undoc__(self):
+    def __special_undoc__(self):  # NoQA: PLW3201
         pass
 
 
-SampleNamedTuple = namedtuple('SampleNamedTuple', 'user_id block_type def_id')
+SampleNamedTuple = namedtuple('SampleNamedTuple', 'user_id block_type def_id')  # NoQA: PYI024
 
 
 class TestProcessDocstring:
@@ -110,12 +110,12 @@ class TestProcessDocstring:
 
 class TestSetup:
     def test_unknown_app_type(self):
-        setup(object())
+        setup(object())  # type: ignore[arg-type]
 
     def test_add_config_values(self):
         app = mock.Mock(Sphinx)
         setup(app)
-        for name in Config._config_values:
+        for name, _default, _rebuild, _types in Config._config_values:
             has_config = False
             for method_name, args, _kwargs in app.method_calls:
                 if method_name == 'add_config_value' and args[0] == name:
@@ -141,7 +141,14 @@ class TestSetup:
 
 
 class TestSkipMember:
-    def assert_skip(self, what, member, obj, expect_default_skip, config_name):
+    def assert_skip(
+        self,
+        what: str,
+        member: str,
+        obj: object,
+        expect_default_skip: bool,
+        config_name: str,
+    ) -> None:
         skip = True
         app = mock.Mock()
         app.config = Config()
@@ -157,7 +164,8 @@ class TestSkipMember:
         # Since python 3.7, namedtuple._asdict() has not been documented
         # because there is no way to check the method is a member of the
         # namedtuple class.  This testcase confirms only it does not
-        # raise an error on building document (refs: #1455)
+        # raise an error on building document
+        # See: https://github.com/sphinx-doc/sphinx/issues/1455
         self.assert_skip(
             'class',
             '_asdict',
