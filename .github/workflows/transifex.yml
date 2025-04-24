@@ -1,6 +1,10 @@
 name: Synchronise translations
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/transifex.yml"
+      - "utils/babel_runner.py"
   schedule:
   # 22:38 GMT, every Sunday. Chosen to be a random time.
   - cron: "38 22 * * SUN"
@@ -9,6 +13,10 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_COLOR: "1"
+  UV_SYSTEM_PYTHON: "1"  # make uv do global installs
+
 jobs:
   push:
     if: github.repository_owner == 'sphinx-doc'
@@ -16,6 +24,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -25,13 +35,18 @@ jobs:
         mkdir -p /tmp/tx_cli && cd $_
         curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash
       shell: bash
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        version: latest
+        enable-cache: false
     - name: Install dependencies
-      run: pip install --upgrade babel jinja2
+      run: uv pip install --group translations
     - name: Extract translations from source code
       run: python utils/babel_runner.py extract
     - name: Push translations to transifex.com
       run: |
-        cd sphinx/locale 
+        cd sphinx/locale
         /tmp/tx_cli/tx push --source --use-git-timestamps --workers 10
       env:
         TX_TOKEN: ${{ secrets.TX_TOKEN }}
@@ -45,6 +60,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -54,22 +71,30 @@ jobs:
         mkdir -p /tmp/tx_cli && cd $_
         curl -o- https://raw.githubusercontent.com/transifex/cli/master/install.sh | bash
       shell: bash
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        version: latest
+        enable-cache: false
     - name: Install dependencies
-      run: pip install --upgrade babel jinja2
+      run: uv pip install --group translations
     - name: Extract translations from source code
       run: python utils/babel_runner.py extract
     - name: Pull translations from transifex.com
       run: |
-        cd sphinx/locale 
+        cd sphinx/locale
         /tmp/tx_cli/tx pull --translations --all --force --use-git-timestamps --workers 10
       env:
         TX_TOKEN: ${{ secrets.TX_TOKEN }}
     - name: Compile message catalogs
       run: python utils/babel_runner.py compile
     - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v6
+      uses: peter-evans/create-pull-request@v7
       with:
+        add-paths: |
+          sphinx/locale
         commit-message: "[internationalisation] Update translations"
         branch: bot/pull-translations
         title: "[bot]: Update message catalogues"
         labels: "internals:internationalisation"
+        body-path: babel_compile.txt

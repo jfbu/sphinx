@@ -1,24 +1,28 @@
 """The Sphinx documentation toolchain."""
 
-__version__ = '7.4.0'
-__display_version__ = __version__  # used for command line version
-
 # Keep this file executable as-is in Python 3!
 # (Otherwise getting the version out of it when packaging is impossible.)
 
-import os
+from __future__ import annotations
+
 import warnings
-from os import path
 
-from .deprecation import RemovedInNextVersionWarning
+from sphinx.util._pathlib import _StrPath
 
-# by default, all DeprecationWarning under sphinx package will be emit.
-# Users can avoid this by using environment variable: PYTHONWARNINGS=
-if 'PYTHONWARNINGS' not in os.environ:
-    warnings.filterwarnings('default', category=RemovedInNextVersionWarning)
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Final
+
 warnings.filterwarnings(
-    'ignore', 'The frontend.Option class .*', DeprecationWarning, module='docutils.frontend'
+    'ignore',
+    'The frontend.Option class .*',
+    DeprecationWarning,
+    module='docutils.frontend',
 )
+del warnings
+
+__version__: Final = '8.3.0'
+__display_version__: Final = __version__  # used for command line version
 
 #: Version info for better programmatic use.
 #:
@@ -28,9 +32,10 @@ warnings.filterwarnings(
 #:
 #: .. versionadded:: 1.2
 #:    Before version 1.2, check the string ``sphinx.__version__``.
-version_info = (7, 4, 0, 'beta', 0)
+version_info: Final = (8, 3, 0, 'beta', 0)
 
-package_dir = path.abspath(path.dirname(__file__))
+package_dir: Final = _StrPath(__file__).resolve().parent
+del _StrPath
 
 _in_development = True
 if _in_development:
@@ -39,14 +44,14 @@ if _in_development:
 
     try:
         if ret := subprocess.run(
-            ['git', 'rev-parse', '--short', 'HEAD'],
-            cwd=package_dir,
+            ('git', 'rev-parse', '--short', 'HEAD'),
             capture_output=True,
             check=False,
-            encoding='ascii',
+            cwd=package_dir,
+            encoding='utf-8',
             errors='surrogateescape',
         ).stdout:
-            __display_version__ += '+/' + ret.strip()
+            __display_version__ += f'+/{ret.strip()}'  # type: ignore[misc]
         del ret
     finally:
         del subprocess

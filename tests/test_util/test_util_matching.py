@@ -1,8 +1,16 @@
 """Tests sphinx.util.matching functions."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from sphinx.util.matching import Matcher, compile_matchers, get_matching_files
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
-def test_compile_matchers():
+
+def test_compile_matchers() -> None:
     # exact matching
     pat = compile_matchers(['hello.py']).pop()
     assert pat('hello.py')
@@ -74,7 +82,7 @@ def test_compile_matchers():
     assert not pat('hello.py')
 
 
-def test_Matcher():
+def test_Matcher() -> None:
     matcher = Matcher(['hello.py', '**/world.py'])
     assert matcher('hello.py')
     assert not matcher('subdir/hello.py')
@@ -82,93 +90,232 @@ def test_Matcher():
     assert matcher('subdir/world.py')
 
 
-def test_get_matching_files_all(rootdir):
-    files = get_matching_files(rootdir / "test-root")
+def test_get_matching_files_all(rootdir: Path) -> None:
+    files = get_matching_files(rootdir / 'test-root')
     assert sorted(files) == [
-        'Makefile', '_templates/contentssb.html', '_templates/customsb.html',
-        '_templates/layout.html', 'autodoc.txt', 'autodoc_target.py', 'bom.txt', 'conf.py',
-        'extapi.txt', 'extensions.txt', 'file_with_special_#_chars.xyz', 'footnote.txt',
-        'images.txt', 'img.foo.png', 'img.gif', 'img.pdf', 'img.png', 'includes.txt',
-        'index.txt', 'lists.txt', 'literal.inc', 'literal_orig.inc', 'markup.txt', 'math.txt',
-        'objects.txt', 'otherext.foo', 'parsermod.py', 'quotes.inc', 'rimg.png',
-        'special/api.h', 'special/code.py', 'subdir/excluded.txt', 'subdir/images.txt',
-        'subdir/img.png', 'subdir/include.inc', 'subdir/includes.txt', 'subdir/simg.png',
-        'svgimg.pdf', 'svgimg.svg', 'tabs.inc', 'test.inc', 'wrongenc.inc',
+        'Makefile',
+        '_templates/contentssb.html',
+        '_templates/customsb.html',
+        '_templates/layout.html',
+        'autodoc.txt',
+        'autodoc_target.py',
+        'bom.txt',
+        'conf.py',
+        'extapi.txt',
+        'extensions.txt',
+        'file_with_special_#_chars.xyz',
+        'footnote.txt',
+        'images.txt',
+        'img.foo.png',
+        'img.gif',
+        'img.pdf',
+        'img.png',
+        'includes.txt',
+        'index.txt',
+        'lists.txt',
+        'literal.inc',
+        'literal_orig.inc',
+        'markup.txt',
+        'math.txt',
+        'objects.txt',
+        'otherext.foo',
+        'parsermod.py',
+        'quotes.inc',
+        'rimg.png',
+        'special/api.h',
+        'special/code.py',
+        'subdir/excluded.txt',
+        'subdir/images.txt',
+        'subdir/img.png',
+        'subdir/include.inc',
+        'subdir/includes.txt',
+        'subdir/simg.png',
+        'svgimg.pdf',
+        'svgimg.svg',
+        'tabs.inc',
+        'test.inc',
+        'wrongenc.inc',
     ]
 
 
-def test_get_matching_files_all_exclude_single(rootdir):
-    files = get_matching_files(rootdir / "test-root", exclude_patterns=["**.html"])
+def test_get_matching_files_all_exclude_single(rootdir: Path) -> None:
+    files = get_matching_files(rootdir / 'test-root', exclude_patterns=['**.html'])
     assert sorted(files) == [
-        'Makefile', 'autodoc.txt', 'autodoc_target.py', 'bom.txt', 'conf.py',
-        'extapi.txt', 'extensions.txt', 'file_with_special_#_chars.xyz', 'footnote.txt',
-        'images.txt', 'img.foo.png', 'img.gif', 'img.pdf', 'img.png', 'includes.txt',
-        'index.txt', 'lists.txt', 'literal.inc', 'literal_orig.inc', 'markup.txt', 'math.txt',
-        'objects.txt', 'otherext.foo', 'parsermod.py', 'quotes.inc', 'rimg.png',
-        'special/api.h', 'special/code.py', 'subdir/excluded.txt', 'subdir/images.txt',
-        'subdir/img.png', 'subdir/include.inc', 'subdir/includes.txt', 'subdir/simg.png',
-        'svgimg.pdf', 'svgimg.svg', 'tabs.inc', 'test.inc', 'wrongenc.inc',
+        'Makefile',
+        'autodoc.txt',
+        'autodoc_target.py',
+        'bom.txt',
+        'conf.py',
+        'extapi.txt',
+        'extensions.txt',
+        'file_with_special_#_chars.xyz',
+        'footnote.txt',
+        'images.txt',
+        'img.foo.png',
+        'img.gif',
+        'img.pdf',
+        'img.png',
+        'includes.txt',
+        'index.txt',
+        'lists.txt',
+        'literal.inc',
+        'literal_orig.inc',
+        'markup.txt',
+        'math.txt',
+        'objects.txt',
+        'otherext.foo',
+        'parsermod.py',
+        'quotes.inc',
+        'rimg.png',
+        'special/api.h',
+        'special/code.py',
+        'subdir/excluded.txt',
+        'subdir/images.txt',
+        'subdir/img.png',
+        'subdir/include.inc',
+        'subdir/includes.txt',
+        'subdir/simg.png',
+        'svgimg.pdf',
+        'svgimg.svg',
+        'tabs.inc',
+        'test.inc',
+        'wrongenc.inc',
     ]
 
 
-def test_get_matching_files_all_exclude_multiple(rootdir):
-    files = get_matching_files(rootdir / "test-root", exclude_patterns=["**.html", "**.inc"])
+def test_get_matching_files_all_exclude_multiple(rootdir: Path) -> None:
+    files = get_matching_files(
+        rootdir / 'test-root', exclude_patterns=['**.html', '**.inc']
+    )
     assert sorted(files) == [
-        'Makefile', 'autodoc.txt', 'autodoc_target.py', 'bom.txt', 'conf.py',
-        'extapi.txt', 'extensions.txt', 'file_with_special_#_chars.xyz', 'footnote.txt',
-        'images.txt', 'img.foo.png', 'img.gif', 'img.pdf', 'img.png', 'includes.txt',
-        'index.txt', 'lists.txt', 'markup.txt', 'math.txt', 'objects.txt', 'otherext.foo',
-        'parsermod.py', 'rimg.png', 'special/api.h', 'special/code.py', 'subdir/excluded.txt',
-        'subdir/images.txt', 'subdir/img.png', 'subdir/includes.txt', 'subdir/simg.png',
-        'svgimg.pdf', 'svgimg.svg',
+        'Makefile',
+        'autodoc.txt',
+        'autodoc_target.py',
+        'bom.txt',
+        'conf.py',
+        'extapi.txt',
+        'extensions.txt',
+        'file_with_special_#_chars.xyz',
+        'footnote.txt',
+        'images.txt',
+        'img.foo.png',
+        'img.gif',
+        'img.pdf',
+        'img.png',
+        'includes.txt',
+        'index.txt',
+        'lists.txt',
+        'markup.txt',
+        'math.txt',
+        'objects.txt',
+        'otherext.foo',
+        'parsermod.py',
+        'rimg.png',
+        'special/api.h',
+        'special/code.py',
+        'subdir/excluded.txt',
+        'subdir/images.txt',
+        'subdir/img.png',
+        'subdir/includes.txt',
+        'subdir/simg.png',
+        'svgimg.pdf',
+        'svgimg.svg',
     ]
 
 
-def test_get_matching_files_all_exclude_nonexistent(rootdir):
-    files = get_matching_files(rootdir / "test-root", exclude_patterns=["halibut/**"])
+def test_get_matching_files_all_exclude_nonexistent(rootdir: Path) -> None:
+    files = get_matching_files(rootdir / 'test-root', exclude_patterns=['halibut/**'])
     assert sorted(files) == [
-        'Makefile', '_templates/contentssb.html', '_templates/customsb.html',
-        '_templates/layout.html', 'autodoc.txt', 'autodoc_target.py', 'bom.txt', 'conf.py',
-        'extapi.txt', 'extensions.txt', 'file_with_special_#_chars.xyz', 'footnote.txt',
-        'images.txt', 'img.foo.png', 'img.gif', 'img.pdf', 'img.png', 'includes.txt',
-        'index.txt', 'lists.txt', 'literal.inc', 'literal_orig.inc', 'markup.txt', 'math.txt',
-        'objects.txt', 'otherext.foo', 'parsermod.py', 'quotes.inc', 'rimg.png',
-        'special/api.h', 'special/code.py', 'subdir/excluded.txt', 'subdir/images.txt',
-        'subdir/img.png', 'subdir/include.inc', 'subdir/includes.txt', 'subdir/simg.png',
-        'svgimg.pdf', 'svgimg.svg', 'tabs.inc', 'test.inc', 'wrongenc.inc',
+        'Makefile',
+        '_templates/contentssb.html',
+        '_templates/customsb.html',
+        '_templates/layout.html',
+        'autodoc.txt',
+        'autodoc_target.py',
+        'bom.txt',
+        'conf.py',
+        'extapi.txt',
+        'extensions.txt',
+        'file_with_special_#_chars.xyz',
+        'footnote.txt',
+        'images.txt',
+        'img.foo.png',
+        'img.gif',
+        'img.pdf',
+        'img.png',
+        'includes.txt',
+        'index.txt',
+        'lists.txt',
+        'literal.inc',
+        'literal_orig.inc',
+        'markup.txt',
+        'math.txt',
+        'objects.txt',
+        'otherext.foo',
+        'parsermod.py',
+        'quotes.inc',
+        'rimg.png',
+        'special/api.h',
+        'special/code.py',
+        'subdir/excluded.txt',
+        'subdir/images.txt',
+        'subdir/img.png',
+        'subdir/include.inc',
+        'subdir/includes.txt',
+        'subdir/simg.png',
+        'svgimg.pdf',
+        'svgimg.svg',
+        'tabs.inc',
+        'test.inc',
+        'wrongenc.inc',
     ]
 
 
-def test_get_matching_files_all_include_single(rootdir):
-    files = get_matching_files(rootdir / "test-root", include_patterns=["subdir/**"])
+def test_get_matching_files_all_include_single(rootdir: Path) -> None:
+    files = get_matching_files(rootdir / 'test-root', include_patterns=['subdir/**'])
     assert sorted(files) == [
-        'subdir/excluded.txt', 'subdir/images.txt', 'subdir/img.png', 'subdir/include.inc',
-        'subdir/includes.txt', 'subdir/simg.png',
+        'subdir/excluded.txt',
+        'subdir/images.txt',
+        'subdir/img.png',
+        'subdir/include.inc',
+        'subdir/includes.txt',
+        'subdir/simg.png',
     ]
 
 
-def test_get_matching_files_all_include_multiple(rootdir):
-    files = get_matching_files(rootdir / "test-root", include_patterns=["special/**", "subdir/**"])
+def test_get_matching_files_all_include_multiple(rootdir: Path) -> None:
+    files = get_matching_files(
+        rootdir / 'test-root', include_patterns=['special/**', 'subdir/**']
+    )
     assert sorted(files) == [
-        'special/api.h', 'special/code.py', 'subdir/excluded.txt', 'subdir/images.txt',
-        'subdir/img.png', 'subdir/include.inc', 'subdir/includes.txt', 'subdir/simg.png',
+        'special/api.h',
+        'special/code.py',
+        'subdir/excluded.txt',
+        'subdir/images.txt',
+        'subdir/img.png',
+        'subdir/include.inc',
+        'subdir/includes.txt',
+        'subdir/simg.png',
     ]
 
 
-def test_get_matching_files_all_include_nonexistent(rootdir):
-    files = get_matching_files(rootdir / "test-root", include_patterns=["halibut/**"])
+def test_get_matching_files_all_include_nonexistent(rootdir: Path) -> None:
+    files = get_matching_files(rootdir / 'test-root', include_patterns=['halibut/**'])
     assert sorted(files) == []
 
 
-def test_get_matching_files_all_include_prefix(rootdir):
-    files = get_matching_files(rootdir / "test-root", include_patterns=["autodoc*"])
+def test_get_matching_files_all_include_prefix(rootdir: Path) -> None:
+    files = get_matching_files(rootdir / 'test-root', include_patterns=['autodoc*'])
     assert sorted(files) == [
-        'autodoc.txt', 'autodoc_target.py',
+        'autodoc.txt',
+        'autodoc_target.py',
     ]
 
 
-def test_get_matching_files_all_include_question_mark(rootdir):
-    files = get_matching_files(rootdir / "test-root", include_patterns=["img.???"])
+def test_get_matching_files_all_include_question_mark(rootdir: Path) -> None:
+    files = get_matching_files(rootdir / 'test-root', include_patterns=['img.???'])
     assert sorted(files) == [
-        'img.gif', 'img.pdf', 'img.png',
+        'img.gif',
+        'img.pdf',
+        'img.png',
     ]
