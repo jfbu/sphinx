@@ -10,6 +10,7 @@ import time
 import wsgiref.handlers
 from base64 import b64encode
 from http.server import BaseHTTPRequestHandler
+from io import StringIO
 from queue import Queue
 from typing import TYPE_CHECKING
 from unittest import mock
@@ -19,17 +20,18 @@ import pytest
 from urllib3.poolmanager import PoolManager
 
 import sphinx.util.http_date
+from sphinx._cli.util.errors import strip_escape_sequences
 from sphinx.builders.linkcheck import (
     CheckRequest,
-    CheckResult,
     Hyperlink,
     HyperlinkAvailabilityCheckWorker,
     RateLimit,
     compile_linkcheck_allowed_redirects,
 )
+from sphinx.errors import ConfigError
+from sphinx.testing.util import SphinxTestApp
 from sphinx.util import requests
 from sphinx.util._pathlib import _StrPath
-from sphinx.util.console import strip_colors
 
 from tests.utils import CERT_FILE, serve_application
 
@@ -37,10 +39,14 @@ ts_re = re.compile(r'.*\[(?P<ts>.*)\].*')
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
+    from pathlib import Path
     from typing import Any
 
     from urllib3 import HTTPConnectionPool
 
+    from sphinx.builders.linkcheck import (
+        CheckResult,
+    )
     from sphinx.testing.util import SphinxTestApp
 
 
@@ -91,7 +97,7 @@ class ConnectionMeasurement:
 
     def _collect_connections(self) -> Callable[[object, str], HTTPConnectionPool]:
         def connection_collector(obj, url):
-            connection = self.urllib3_connection_from_url(obj, url)
+            connection = self.urllib3_connection_from_url(obj, url)  # type: ignore[no-untyped-call]
             self.connections.add(connection)
             return connection
 
@@ -255,6 +261,7 @@ def test_too_many_retries(app: SphinxTestApp) -> None:
     'linkcheck',
     testroot='linkcheck-raw-node',
     freshenv=True,
+    copy_test_root=True,
 )
 def test_raw_node(app: SphinxTestApp) -> None:
     with serve_application(app, OKHandler) as address:
@@ -435,7 +442,7 @@ def test_raises_for_invalid_status(app: SphinxTestApp) -> None:
     testroot='linkcheck-localserver-anchor',
     freshenv=True,
 )
-def test_incomplete_html_anchor(app):
+def test_incomplete_html_anchor(app: SphinxTestApp) -> None:
     class IncompleteHTMLDocumentHandler(BaseHTTPRequestHandler):
         protocol_version = 'HTTP/1.1'
 
@@ -461,7 +468,7 @@ def test_incomplete_html_anchor(app):
     testroot='linkcheck-localserver-anchor',
     freshenv=True,
 )
-def test_decoding_error_anchor_ignored(app):
+def test_decoding_error_anchor_ignored(app: SphinxTestApp) -> None:
     class NonASCIIHandler(BaseHTTPRequestHandler):
         protocol_version = 'HTTP/1.1'
 
@@ -486,8 +493,7 @@ def custom_handler(
     valid_credentials: tuple[str, str] | None = None,
     success_criteria: Callable[[Any], bool] = lambda _: True,
 ) -> type[BaseHTTPRequestHandler]:
-    """
-    Returns an HTTP request handler that authenticates the client and then determines
+    """Returns an HTTP request handler that authenticates the client and then determines
     an appropriate HTTP response code, based on caller-provided credentials and optional
     success criteria, respectively.
     """
@@ -500,7 +506,7 @@ def custom_handler(
     def authenticated(
         method: Callable[[CustomHandler], None],
     ) -> Callable[[CustomHandler], None]:
-        def method_if_authenticated(self):
+        def method_if_authenticated(self: CustomHandler) -> None:
             if expected_token is None:
                 return method(self)
             elif not self.headers['Authorization']:
@@ -512,6 +518,7 @@ def custom_handler(
                 self.send_response(403, 'Forbidden')
                 self.send_header('Content-Length', '0')
                 self.end_headers()
+            return None
 
         return method_if_authenticated
 
@@ -709,7 +716,7 @@ def make_redirect_handler(*, support_head: bool) -> type[BaseHTTPRequestHandler]
 def test_follows_redirects_on_HEAD(app, capsys):
     with serve_application(app, make_redirect_handler(support_head=True)) as address:
         app.build()
-    stdout, stderr = capsys.readouterr()
+    _stdout, stderr = capsys.readouterr()
     content = (app.outdir / 'output.txt').read_text(encoding='utf8')
     assert content == (
         'index.rst:1: [redirected with Found] '
@@ -732,7 +739,7 @@ def test_follows_redirects_on_HEAD(app, capsys):
 def test_follows_redirects_on_GET(app, capsys):
     with serve_application(app, make_redirect_handler(support_head=False)) as address:
         app.build()
-    stdout, stderr = capsys.readouterr()
+    _stdout, stderr = capsys.readouterr()
     content = (app.outdir / 'output.txt').read_text(encoding='utf8')
     assert content == (
         'index.rst:1: [redirected with Found] '
@@ -746,6 +753,34 @@ def test_follows_redirects_on_GET(app, capsys):
         """,
     )
     assert app.warning.getvalue() == ''
+
+
+def test_linkcheck_allowed_redirects_config(
+    make_app: Callable[..., SphinxTestApp], tmp_path: Path
+) -> None:
+    tmp_path.joinpath('conf.py').touch()
+    tmp_path.joinpath('index.rst').touch()
+
+    # ``linkcheck_allowed_redirects = None`` is rejected
+    warning_stream = StringIO()
+    with pytest.raises(ConfigError):
+        make_app(
+            'linkcheck',
+            srcdir=tmp_path,
+            confoverrides={'linkcheck_allowed_redirects': None},
+            warning=warning_stream,
+        )
+    assert strip_escape_sequences(warning_stream.getvalue()).splitlines() == [
+        "WARNING: The config value `linkcheck_allowed_redirects' has type `NoneType'; expected `dict'."
+    ]
+
+    # ``linkcheck_allowed_redirects = {}`` is permitted
+    app = make_app(
+        'linkcheck',
+        srcdir=tmp_path,
+        confoverrides={'linkcheck_allowed_redirects': {}},
+    )
+    assert strip_escape_sequences(app.warning.getvalue()) == ''
 
 
 @pytest.mark.sphinx('linkcheck', testroot='linkcheck-localserver-warn-redirects')
@@ -773,7 +808,7 @@ def test_linkcheck_allowed_redirects(app: SphinxTestApp) -> None:
     assert (
         f'index.rst:3: WARNING: redirect  http://{address}/path2 - with Found to '
         f'http://{address}/?redirected=1\n'
-    ) in strip_colors(app.warning.getvalue())
+    ) in strip_escape_sequences(app.warning.getvalue())
     assert len(app.warning.getvalue().splitlines()) == 1
 
 
@@ -925,7 +960,7 @@ class InfiniteRedirectOnHeadHandler(BaseHTTPRequestHandler):
 
     def do_HEAD(self):
         self.send_response(302, 'Found')
-        self.send_header('Location', '/')
+        self.send_header('Location', '/redirected')
         self.send_header('Content-Length', '0')
         self.end_headers()
 
@@ -962,6 +997,55 @@ def test_TooManyRedirects_on_HEAD(app, monkeypatch):
         'lineno': 1,
         'uri': f'http://{address}/',
         'info': '',
+    }
+
+
+@pytest.mark.sphinx('linkcheck', testroot='linkcheck-localserver')
+def test_ignore_local_redirection(app: SphinxTestApp) -> None:
+    with serve_application(app, InfiniteRedirectOnHeadHandler) as address:
+        app.config.linkcheck_ignore = [f'http://{address}/redirected']
+        app.build()
+
+    with open(app.outdir / 'output.json', encoding='utf-8') as fp:
+        content = json.load(fp)
+    assert content == {
+        'code': 302,
+        'status': 'ignored',
+        'filename': 'index.rst',
+        'lineno': 1,
+        'uri': f'http://{address}/',
+        'info': f'ignored redirect: http://{address}/redirected',
+    }
+
+
+class RemoteDomainRedirectHandler(InfiniteRedirectOnHeadHandler):
+    protocol_version = 'HTTP/1.1'
+
+    def do_GET(self):
+        self.send_response(301, 'Found')
+        if self.path == '/':
+            self.send_header('Location', '/local')
+        elif self.path == '/local':
+            self.send_header('Location', 'http://example.test/migrated')
+        self.send_header('Content-Length', '0')
+        self.end_headers()
+
+
+@pytest.mark.sphinx('linkcheck', testroot='linkcheck-localserver')
+def test_ignore_remote_redirection(app: SphinxTestApp) -> None:
+    with serve_application(app, RemoteDomainRedirectHandler) as address:
+        app.config.linkcheck_ignore = ['http://example.test']
+        app.build()
+
+    with open(app.outdir / 'output.json', encoding='utf-8') as fp:
+        content = json.load(fp)
+    assert content == {
+        'code': 301,
+        'status': 'ignored',
+        'filename': 'index.rst',
+        'lineno': 1,
+        'uri': f'http://{address}/',
+        'info': 'ignored redirect: http://example.test/migrated',
     }
 
 
@@ -1010,7 +1094,7 @@ def test_too_many_requests_retry_after_int_delay(app, capsys):
         'info': '',
     }
     rate_limit_log = f'-rate limited-   http://{address}/ | sleeping...\n'
-    assert rate_limit_log in strip_colors(app.status.getvalue())
+    assert rate_limit_log in strip_escape_sequences(app.status.getvalue())
     _stdout, stderr = capsys.readouterr()
     assert stderr == textwrap.dedent(
         """\

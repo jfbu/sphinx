@@ -121,16 +121,7 @@ These are the basic steps needed to start developing on Sphinx.
 
    .. code-block:: shell
 
-      git commit -m '#42: Add useful new feature that does this.'
-
-   GitHub recognizes certain phrases that can be used to automatically
-   update the issue tracker. For example:
-
-   .. code-block:: shell
-
-      git commit -m 'Closes #42: Fix invalid markup in docstring of Foo.bar.'
-
-   would close issue #42.
+      git commit -m 'Add useful new feature that does this.'
 
 #. Push changes in the branch to your forked repository on GitHub:
 
@@ -139,6 +130,11 @@ These are the basic steps needed to start developing on Sphinx.
       git push origin feature-xyz
 
 #. Submit a pull request from your branch to the ``master`` branch.
+
+   GitHub recognizes certain phrases that can be used to automatically
+   update the issue tracker.
+   For example, including 'Closes #42' in the body of your pull request
+   will close issue #42 if the PR is merged.
 
 #. Wait for a core developer or contributor to review your changes.
 
@@ -188,18 +184,18 @@ of targets and allows testing against multiple different Python environments:
 
      tox -av
 
-* To run unit tests for a specific Python version, such as Python 3.12:
+* To run unit tests for a specific Python version, such as Python 3.13:
 
   .. code-block:: shell
 
-     tox -e py312
+     tox -e py313
 
 * Arguments to :program:`pytest` can be passed via :program:`tox`,
   e.g., in order to run a particular test:
 
   .. code-block:: shell
 
-     tox -e py312 tests/test_module.py::test_new_feature
+     tox -e py313 tests/test_module.py::test_new_feature
 
 You can also test by installing dependencies in your local environment:
 
@@ -270,12 +266,14 @@ you to preview in :file:`build/sphinx/html`.
 
 You can also build a **live version of the documentation** that you can preview
 in the browser. It will detect changes and reload the page any time you make
-edits. To do so, run the following command:
+edits.
+To do so, use `sphinx-autobuild`_ to run the following command:
 
 .. code-block:: shell
 
    sphinx-autobuild ./doc ./build/sphinx/
 
+.. _sphinx-autobuild: https://github.com/sphinx-doc/sphinx-autobuild
 
 Translations
 ~~~~~~~~~~~~

@@ -1,21 +1,21 @@
 """Tests sphinx.util.rst functions."""
 
-import pytest
+from __future__ import annotations
+
 from docutils.statemachine import StringList
 from jinja2 import Environment
 
 from sphinx.util.rst import append_epilog, escape, heading, prepend_prolog, textwidth
 
 
-def test_escape():
+def test_escape() -> None:
     assert escape(':ref:`id`') == r'\:ref\:\`id\`'
     assert escape('footnote [#]_') == r'footnote \[\#\]\_'
     assert escape('sphinx.application') == r'sphinx.application'
     assert escape('.. toctree::') == r'\.. toctree\:\:'
 
 
-@pytest.mark.sphinx('html', testroot='root')
-def test_append_epilog(app):
+def test_append_epilog() -> None:
     epilog = 'this is rst_epilog\ngood-bye reST!'
     content = StringList(
         ['hello Sphinx world', 'Sphinx is a document generator'],
@@ -32,8 +32,7 @@ def test_append_epilog(app):
     ]
 
 
-@pytest.mark.sphinx('html', testroot='root')
-def test_prepend_prolog(app):
+def test_prepend_prolog() -> None:
     prolog = 'this is rst_prolog\nhello reST!'
     content = StringList(
         [
@@ -60,8 +59,7 @@ def test_prepend_prolog(app):
     ]
 
 
-@pytest.mark.sphinx('html', testroot='root')
-def test_prepend_prolog_with_CR(app):
+def test_prepend_prolog_with_CR() -> None:
     # prolog having CR at tail
     prolog = 'this is rst_prolog\nhello reST!\n'
     content = StringList(
@@ -79,8 +77,7 @@ def test_prepend_prolog_with_CR(app):
     ]
 
 
-@pytest.mark.sphinx('html', testroot='root')
-def test_prepend_prolog_without_CR(app):
+def test_prepend_prolog_without_CR() -> None:
     # prolog not having CR at tail
     prolog = 'this is rst_prolog\nhello reST!'
     content = StringList(
@@ -98,8 +95,7 @@ def test_prepend_prolog_without_CR(app):
     ]
 
 
-@pytest.mark.sphinx('html', testroot='root')
-def test_prepend_prolog_with_roles_in_sections(app):
+def test_prepend_prolog_with_roles_in_sections() -> None:
     prolog = 'this is rst_prolog\nhello reST!'
     content = StringList(
         [
@@ -130,8 +126,7 @@ def test_prepend_prolog_with_roles_in_sections(app):
     ]
 
 
-@pytest.mark.sphinx('html', testroot='root')
-def test_prepend_prolog_with_roles_in_sections_with_newline(app):
+def test_prepend_prolog_with_roles_in_sections_with_newline() -> None:
     # prologue with trailing line break
     prolog = 'this is rst_prolog\nhello reST!\n'
     content = StringList([':mod:`foo`', '-' * 10, '', 'hello'], 'dummy.rst')
@@ -148,8 +143,7 @@ def test_prepend_prolog_with_roles_in_sections_with_newline(app):
     ]
 
 
-@pytest.mark.sphinx('html', testroot='root')
-def test_prepend_prolog_with_roles_in_sections_without_newline(app):
+def test_prepend_prolog_with_roles_in_sections_without_newline() -> None:
     # prologue with no trailing line break
     prolog = 'this is rst_prolog\nhello reST!'
     content = StringList([':mod:`foo`', '-' * 10, '', 'hello'], 'dummy.rst')
@@ -166,14 +160,14 @@ def test_prepend_prolog_with_roles_in_sections_without_newline(app):
     ]
 
 
-def test_textwidth():
+def test_textwidth() -> None:
     assert textwidth('Hello') == 5
     assert textwidth('русский язык') == 12
     assert textwidth('русский язык', 'WFA') == 23  # Cyrillic are ambiguous chars
 
 
-def test_heading():
-    env = Environment()
+def test_heading() -> None:
+    env = Environment(autoescape=True)
     env.extend(language=None)
 
     assert heading(env, 'Hello') == 'Hello\n====='
@@ -183,5 +177,5 @@ def test_heading():
     assert heading(env, 'русский язык', 1) == 'русский язык\n============'
 
     # language=ja: ambiguous
-    env.language = 'ja'
+    env.language = 'ja'  # type: ignore[attr-defined]
     assert heading(env, 'русский язык', 1) == 'русский язык\n======================='

@@ -3,22 +3,18 @@
 from __future__ import annotations
 
 import pickle
-import time
 from collections import Counter
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from unittest import mock
 
 import pytest
 
 import sphinx
-from sphinx.builders.gettext import _gettext_compact_validator
 from sphinx.config import (
     ENUM,
     Config,
     _Opt,
     check_confval_types,
-    correct_copyright_year,
     is_serializable,
 )
 from sphinx.deprecation import RemovedInSphinx90Warning
@@ -27,6 +23,8 @@ from sphinx.errors import ConfigError, ExtensionError, VersionRequirementError
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from typing import TypeAlias
+
+    from sphinx.testing.util import SphinxTestApp
 
     CircularList: TypeAlias = list[int | 'CircularList']
     CircularDict: TypeAlias = dict[str, int | 'CircularDict']
@@ -70,7 +68,7 @@ def test_config_opt_deprecated(recwarn):
     opt = _Opt('default', '', ())
 
     with pytest.warns(RemovedInSphinx90Warning):
-        default, rebuild, valid_types = opt
+        _default, _rebuild, _valid_types = opt
 
     with pytest.warns(RemovedInSphinx90Warning):
         _ = opt[0]
@@ -89,7 +87,7 @@ def test_config_opt_deprecated(recwarn):
         'modindex_common_prefix': 'path1,path2',
     },
 )
-def test_core_config(app):
+def test_core_config(app: SphinxTestApp) -> None:
     cfg = app.config
 
     # simple values
@@ -164,7 +162,7 @@ def test_config_pickle_circular_reference_in_list():
 
     config = Config()
     config.add('a', [], '', types=list)
-    config.add('b', [], '', types=list)
+    config.add('b', [], '', types=frozenset({list}))
     config.a, config.b = a, b
 
     actual = pickle.loads(pickle.dumps(config))
@@ -218,7 +216,7 @@ def test_config_pickle_circular_reference_in_list():
         assert v.__class__ is u.__class__
         for u_i, v_i in zip(u, v, strict=True):
             counter[type(u)] += 1
-            check(u_i, v_i, counter=counter, guard=guard | {id(u), id(v)})
+            check(u_i, v_i, counter=counter, guard=guard | {id(u), id(v)})  # type: ignore[arg-type]
 
         return counter
 
@@ -246,7 +244,7 @@ def test_config_pickle_circular_reference_in_dict():
     check_is_serializable(x, circular=True)
 
     config = Config()
-    config.add('x', [], '', types=dict)
+    config.add('x', [], '', types=frozenset({dict}))
     config.x = x
 
     actual = pickle.loads(pickle.dumps(config))
@@ -282,7 +280,7 @@ def test_config_pickle_circular_reference_in_dict():
         assert v.__class__ is u.__class__
         for u_i, v_i in zip(u, v, strict=True):
             counter[type(u)] += 1
-            check(u[u_i], v[v_i], counter=counter, guard=guard | {id(u), id(v)})
+            check(u[u_i], v[v_i], counter=counter, guard=guard | {id(u), id(v)})  # type: ignore[arg-type]
         return counter
 
     counters = check(actual.x, x, counter=Counter())
@@ -316,7 +314,7 @@ def test_extension_values():
     assert 'already present' in str(excinfo.value)
 
 
-def test_overrides():
+def test_overrides() -> None:
     config = Config(
         {'value1': '1', 'value2': 2, 'value6': {'default': 6}},
         {
@@ -347,7 +345,7 @@ def test_overrides():
     assert config.value8 == ['abc', 'def', 'ghi']
 
 
-def test_overrides_boolean():
+def test_overrides_boolean() -> None:
     config = Config({}, {'value1': '1', 'value2': '0', 'value3': '0'})
     config.add('value1', None, 'env', [bool])
     config.add('value2', None, 'env', [bool])
@@ -376,7 +374,7 @@ def test_overrides_dict_str(logger):
     )
 
 
-def test_callable_defer():
+def test_callable_defer() -> None:
     config = Config()
     config.add('alias', lambda c: c.master_doc, '', str)
 
@@ -412,17 +410,6 @@ def test_errors_if_setup_is_not_callable(tmp_path, make_app):
     with pytest.raises(ConfigError) as excinfo:
         make_app(srcdir=tmp_path)
     assert 'callable' in str(excinfo.value)
-
-
-@pytest.fixture
-def make_app_with_empty_project(make_app, tmp_path):
-    (tmp_path / 'conf.py').touch()
-
-    def _make_app(*args, **kw):
-        kw.setdefault('srcdir', Path(tmp_path))
-        return make_app(*args, **kw)
-
-    return _make_app
 
 
 @mock.patch.object(sphinx, '__display_version__', '1.6.4')
@@ -463,18 +450,17 @@ def test_config_eol(logger, tmp_path):
     testroot='root',
     confoverrides={'root_doc': 123, 'language': 'foo', 'primary_domain': None},
 )
-def test_builtin_conf(app):
+def test_builtin_conf(app: SphinxTestApp) -> None:
     warnings = app.warning.getvalue()
-    assert (
-        'root_doc'
-    ) in warnings, 'override on builtin "root_doc" should raise a type warning'
+    assert 'root_doc' in warnings, (
+        'override on builtin "root_doc" should raise a type warning'
+    )
     assert 'language' not in warnings, (
         'explicitly permitted override on builtin "language" should NOT raise '
         'a type warning'
     )
     assert 'primary_domain' not in warnings, (
-        'override to None on builtin "primary_domain" should NOT raise a type '
-        'warning'
+        'override to None on builtin "primary_domain" should NOT raise a type warning'
     )
 
 
@@ -607,7 +593,7 @@ nitpick_warnings = [
 
 
 @pytest.mark.sphinx('html', testroot='nitpicky-warnings')
-def test_nitpick_base(app):
+def test_nitpick_base(app: SphinxTestApp) -> None:
     app.build(force_all=True)
 
     warning = app.warning.getvalue().strip().split('\n')
@@ -627,7 +613,7 @@ def test_nitpick_base(app):
         },
     },
 )
-def test_nitpick_ignore(app):
+def test_nitpick_ignore(app: SphinxTestApp) -> None:
     app.build(force_all=True)
     assert not len(app.warning.getvalue().strip())
 
@@ -642,7 +628,7 @@ def test_nitpick_ignore(app):
         ],
     },
 )
-def test_nitpick_ignore_regex1(app):
+def test_nitpick_ignore_regex1(app: SphinxTestApp) -> None:
     app.build(force_all=True)
     assert not len(app.warning.getvalue().strip())
 
@@ -657,7 +643,7 @@ def test_nitpick_ignore_regex1(app):
         ],
     },
 )
-def test_nitpick_ignore_regex2(app):
+def test_nitpick_ignore_regex2(app: SphinxTestApp) -> None:
     app.build(force_all=True)
     assert not len(app.warning.getvalue().strip())
 
@@ -678,7 +664,7 @@ def test_nitpick_ignore_regex2(app):
         ],
     },
 )
-def test_nitpick_ignore_regex_fullmatch(app):
+def test_nitpick_ignore_regex_fullmatch(app: SphinxTestApp) -> None:
     app.build(force_all=True)
 
     warning = app.warning.getvalue().strip().split('\n')
@@ -687,7 +673,7 @@ def test_nitpick_ignore_regex_fullmatch(app):
 
 
 def test_conf_py_language_none(tmp_path):
-    """Regression test for #10474."""
+    """Regression test for https://github.com/sphinx-doc/sphinx/issues/10474."""
     # Given a conf.py file with language = None
     (tmp_path / 'conf.py').write_text('language = None', encoding='utf-8')
 
@@ -700,7 +686,7 @@ def test_conf_py_language_none(tmp_path):
 
 @mock.patch('sphinx.config.logger')
 def test_conf_py_language_none_warning(logger, tmp_path):
-    """Regression test for #10474."""
+    """Regression test for https://github.com/sphinx-doc/sphinx/issues/10474."""
     # Given a conf.py file with language = None
     (tmp_path / 'conf.py').write_text('language = None', encoding='utf-8')
 
@@ -717,7 +703,7 @@ def test_conf_py_language_none_warning(logger, tmp_path):
 
 
 def test_conf_py_no_language(tmp_path):
-    """Regression test for #10474."""
+    """Regression test for https://github.com/sphinx-doc/sphinx/issues/10474."""
     # Given a conf.py file with no language attribute
     (tmp_path / 'conf.py').touch()
 
@@ -729,7 +715,7 @@ def test_conf_py_no_language(tmp_path):
 
 
 def test_conf_py_nitpick_ignore_list(tmp_path):
-    """Regression test for #11355."""
+    """Regression test for https://github.com/sphinx-doc/sphinx/issues/11355."""
     # Given a conf.py file with no language attribute
     (tmp_path / 'conf.py').touch()
 
@@ -741,129 +727,76 @@ def test_conf_py_nitpick_ignore_list(tmp_path):
     assert cfg.nitpick_ignore_regex == []
 
 
-@pytest.fixture(
-    params=[
-        # test with SOURCE_DATE_EPOCH unset: no modification
-        None,
-        # test with SOURCE_DATE_EPOCH set: copyright year should be updated
-        1293840000,
-        1293839999,
-    ]
-)
-def source_date_year(request, monkeypatch):
-    sde = request.param
-    with monkeypatch.context() as m:
-        if sde:
-            m.setenv('SOURCE_DATE_EPOCH', str(sde))
-            yield time.gmtime(sde).tm_year
-        else:
-            m.delenv('SOURCE_DATE_EPOCH', raising=False)
-            yield None
-
-
-@pytest.mark.sphinx('html', testroot='copyright-multiline')
-def test_multi_line_copyright(source_date_year, app, monkeypatch):
-    app.build(force_all=True)
-
-    content = (app.outdir / 'index.html').read_text(encoding='utf-8')
-
-    if source_date_year is None:
-        # check the copyright footer line by line (empty lines ignored)
-        assert '  &#169; Copyright 2006.<br/>\n' in content
-        assert '  &#169; Copyright 2006-2009, Alice.<br/>\n' in content
-        assert '  &#169; Copyright 2010-2013, Bob.<br/>\n' in content
-        assert '  &#169; Copyright 2014-2017, Charlie.<br/>\n' in content
-        assert '  &#169; Copyright 2018-2021, David.<br/>\n' in content
-        assert '  &#169; Copyright 2022-2025, Eve.' in content
-
-        # check the raw copyright footer block (empty lines included)
-        assert (
-            '      &#169; Copyright 2006.<br/>\n'
-            '    \n'
-            '      &#169; Copyright 2006-2009, Alice.<br/>\n'
-            '    \n'
-            '      &#169; Copyright 2010-2013, Bob.<br/>\n'
-            '    \n'
-            '      &#169; Copyright 2014-2017, Charlie.<br/>\n'
-            '    \n'
-            '      &#169; Copyright 2018-2021, David.<br/>\n'
-            '    \n'
-            '      &#169; Copyright 2022-2025, Eve.'
-        ) in content
-    else:
-        # check the copyright footer line by line (empty lines ignored)
-        assert f'  &#169; Copyright {source_date_year}.<br/>\n' in content
-        assert f'  &#169; Copyright 2006-{source_date_year}, Alice.<br/>\n' in content
-        assert f'  &#169; Copyright 2010-{source_date_year}, Bob.<br/>\n' in content
-        assert f'  &#169; Copyright 2014-{source_date_year}, Charlie.<br/>\n' in content
-        assert f'  &#169; Copyright 2018-{source_date_year}, David.<br/>\n' in content
-        assert f'  &#169; Copyright 2022-{source_date_year}, Eve.' in content
-
-        # check the raw copyright footer block (empty lines included)
-        assert (
-            f'      &#169; Copyright {source_date_year}.<br/>\n'
-            f'    \n'
-            f'      &#169; Copyright 2006-{source_date_year}, Alice.<br/>\n'
-            f'    \n'
-            f'      &#169; Copyright 2010-{source_date_year}, Bob.<br/>\n'
-            f'    \n'
-            f'      &#169; Copyright 2014-{source_date_year}, Charlie.<br/>\n'
-            f'    \n'
-            f'      &#169; Copyright 2018-{source_date_year}, David.<br/>\n'
-            f'    \n'
-            f'      &#169; Copyright 2022-{source_date_year}, Eve.'
-        ) in content
-
-
-@pytest.mark.parametrize(
-    ('conf_copyright', 'expected_copyright'),
-    [
-        ('1970', '{current_year}'),
-        # https://github.com/sphinx-doc/sphinx/issues/11913
-        ('1970-1990', '1970-{current_year}'),
-        ('1970-1990 Alice', '1970-{current_year} Alice'),
-    ],
-)
-def test_correct_copyright_year(conf_copyright, expected_copyright, source_date_year):
-    config = Config({}, {'copyright': conf_copyright})
-    correct_copyright_year(_app=None, config=config)
-    actual_copyright = config['copyright']
-
-    if source_date_year is None:
-        expected_copyright = conf_copyright
-    else:
-        expected_copyright = expected_copyright.format(current_year=source_date_year)
-    assert actual_copyright == expected_copyright
-
-
-def test_gettext_compact_command_line_true():
+def test_gettext_compact_command_line_true() -> None:
     config = Config({}, {'gettext_compact': '1'})
     config.add('gettext_compact', True, '', {bool, str})
-    _gettext_compact_validator(..., config)
 
-    # regression test for #8549 (-D gettext_compact=1)
+    # regression test for https://github.com/sphinx-doc/sphinx/issues/8549
+    # (-D gettext_compact=1)
     assert config.gettext_compact is True
 
 
-def test_gettext_compact_command_line_false():
+def test_gettext_compact_command_line_false() -> None:
     config = Config({}, {'gettext_compact': '0'})
     config.add('gettext_compact', True, '', {bool, str})
-    _gettext_compact_validator(..., config)
 
-    # regression test for #8549 (-D gettext_compact=0)
+    # regression test for https://github.com/sphinx-doc/sphinx/issues/8549
+    # (-D gettext_compact=0)
     assert config.gettext_compact is False
 
 
-def test_gettext_compact_command_line_str():
+def test_gettext_compact_command_line_str() -> None:
     config = Config({}, {'gettext_compact': 'spam'})
     config.add('gettext_compact', True, '', {bool, str})
-    _gettext_compact_validator(..., config)
 
-    # regression test for #8549 (-D gettext_compact=spam)
+    # regression test for https://github.com/sphinx-doc/sphinx/issues/8549
+    # (-D gettext_compact=spam)
     assert config.gettext_compact == 'spam'
 
 
-def test_root_doc_and_master_doc_are_synchronized():
+def test_translation_progress_classes_command_line() -> None:
+    config = Config({}, {'translation_progress_classes': '1'})
+
+    # regression test for --define translation_progress_classes=1
+    # https://github.com/sphinx-doc/sphinx/issues/13071
+    assert config.translation_progress_classes is True
+
+
+def test_translation_progress_classes_command_line_false() -> None:
+    config = Config({}, {'translation_progress_classes': '0'})
+
+    # regression test for --define translation_progress_classes=0
+    # https://github.com/sphinx-doc/sphinx/issues/13071
+    assert config.translation_progress_classes is False
+
+
+def test_translation_progress_classes_command_line_str() -> None:
+    config = Config({}, {'translation_progress_classes': 'translated'})
+
+    # regression test for --define translation_progress_classes=translated
+    # https://github.com/sphinx-doc/sphinx/issues/13071
+    assert config.translation_progress_classes == 'translated'
+
+
+def test_autosummary_generate_command_line_false() -> None:
+    config = Config({}, {'autosummary_generate': '0'})
+    config.add('autosummary_generate', True, '', {bool, list})
+
+    # regression test for --define autosummary_generate=0
+    # https://github.com/sphinx-doc/sphinx/issues/13273
+    assert config.autosummary_generate is False
+
+
+def test_boolean_command_line_invalid() -> None:
+    config = Config({}, {'rabit_of_caerbannog': ''})
+    config.add('rabit_of_caerbannog', True, '', {bool})
+    with pytest.raises(
+        ConfigError, match="'rabit_of_caerbannog' must be '0' or '1', got ''"
+    ):
+        _ = config.rabit_of_caerbannog
+
+
+def test_root_doc_and_master_doc_are_synchronized() -> None:
     c = Config()
     assert c.master_doc == 'index'
     assert c.root_doc == c.master_doc
