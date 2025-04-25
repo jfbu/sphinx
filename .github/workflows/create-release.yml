@@ -51,7 +51,7 @@ jobs:
           twine check dist/*
 
       - name: Create Sigstore attestations for built distributions
-        uses: actions/attest@v1
+        uses: actions/attest@v2
         id: attest
         with:
           subject-path: "dist/*"
