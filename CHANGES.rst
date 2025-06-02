@@ -52,6 +52,12 @@ Features added
   Patch by Spencer Brown.
 * #13535: html search: Update to the latest version of Snowball (v3.0.1).
   Patch by Adam Turner.
+* #13611: Allow `Pygments style <https://pygments.org/styles/>`_ overriding
+  on a per-block 
+  basis via new options (:rst:dir:`code-block:style-light` and 
+  :rst:dir:`code-block:style-dark`) for the :rst:dir:`code-block`,
+  :rst:dir:`sourcecode`, :rst:dir:`literalinclude` and :rst:dir:`code`.
+  Patch by Héctor Medina.
 * #13647: LaTeX: allow more cases of table nesting.
   Patch by Jean-François B.
 
