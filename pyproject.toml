@@ -105,7 +105,7 @@ lint = [
     "pyright==1.1.400",
     "pytest>=8.0",
     "pypi-attestations==0.0.26",
-    "betterproto==2.0.0b6",
+    "betterproto==2.0.0b7",
 ]
 test = [
     "pytest>=8.0",
@@ -139,7 +139,7 @@ lint = [
     "sphinx-lint>=0.9",
 ]
 package = [
-    "betterproto==2.0.0b6",  # resolution fails without betterproto
+    "betterproto==2.0.0b7",  # resolution fails without betterproto
     "build",
     "pypi-attestations==0.0.26",
     "twine>=6.1",
