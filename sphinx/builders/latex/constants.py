@@ -202,7 +202,7 @@ ADDITIONAL_SETTINGS: dict[Any, dict[str, Any]] = {
         'fontenc':      '\\usepackage{xeCJK}',
         # set formatcom=\xeCJKVerbAddon to prevent xeCJK from adding extra spaces in
         # fancyvrb Verbatim environment.
-        'fvset':        '\\fvset{fontsize=\\small,formatcom=\\xeCJKVerbAddon}'
+        'fvset':        '\\fvset{fontsize=\\small,formatcom=\\xeCJKVerbAddon}',
     },
     ('xelatex', 'el'): {
         'fontpkg':      XELATEX_GREEK_DEFAULT_FONTPKG,
