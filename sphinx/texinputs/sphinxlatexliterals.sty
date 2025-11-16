@@ -57,16 +57,22 @@
 % in particular wrapping long code lines in a way allowing page breaks.
 \RequirePackage{fancyvrb}
 % Store a copy of the original \FV@Tab, i.e. the one for obeytabs=false.
+% But we need a version allowing a linebreak so we insert \allowbreak.
+% TODO: do something fancier with a \discretionary as we do for a space at
+%       location where we wrap long codelines (see \spx@verbatim@space).
+% MEMO: \FV@TabChar does nothing without option showtabs.  With
+%       \fvset{showtabs} it draws something similar to a ->| at right end
+%       of the inserted horizontal whitespace.
+\def\spx@FV@Tab{\allowbreak\hbox to\FancyVerbTabSize\fontdimen2\font{\hss\FV@TabChar}}
 % In sphinx.sty, the \PYG macro is modified to set raw TAB characters
-% in its second argument to be this \FV@Tab, because the one defined
-% by fancyvrb.sty with obeytabs option only works for top-level TAB chars
+% in its second argument to use the above \FV@Tab, because the one defined
+% by fancyvrb.sty to obey tab stops only works at top-level.
 % (this is an uptream bug/fact of life).
-% MEMO: attow (2025/11/16), a nested raw TAB can come from a literalinclude
-%       directive but never from a code-block.  In this latter case, TABs
-%       have been replaced with spaces earlier (as is the case also for HTML
-%       output, cf #14065).
-\let\spx@FV@Tab\FV@Tab
-% Now set sphinxVerbatim to obey tab stops (defaut: every 8 characters).
+% MEMO: attow (2025/11/16), a raw TAB (possibly nested) can come from a
+%       literalinclude directive but never from a code-block.  In this latter
+%       case, TABs have been replaced with spaces earlier (as is the case also
+%       for HTML output, cf #14065).  Now set sphinxVerbatim to obey tab stops
+%       (defaut: every 8 characters).
 \fvset{obeytabs}
 
 % For parsed-literal blocks.
