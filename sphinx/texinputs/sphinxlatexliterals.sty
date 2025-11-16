@@ -1,7 +1,7 @@
 %% LITERAL BLOCKS
 %
 % change this info string if making any custom modification
-\ProvidesPackage{sphinxlatexliterals}[2025/08/06 v8.3.0 code-blocks and parsed literals]
+\ProvidesPackage{sphinxlatexliterals}[2025/11/16 v8.3.0 code-blocks and parsed literals]
 
 % Provides support for this output mark-up from Sphinx latex writer:
 %
@@ -56,6 +56,19 @@
 % 1, 2, 3, 4 by own Sphinx fully native Verbatim. This would greatly simplify
 % in particular wrapping long code lines in a way allowing page breaks.
 \RequirePackage{fancyvrb}
+% Store a copy of the original \FV@Tab, i.e. the one for obeytabs=false.
+% In sphinx.sty, the \PYG macro is modified to set raw TAB characters
+% in its second argument to be this \FV@Tab, because the one defined
+% by fancyvrb.sty with obeytabs option only works for top-level TAB chars
+% (this is an uptream bug/fact of life).
+% MEMO: attow (2025/11/16), a nested raw TAB can come from a literalinclude
+%       directive but never from a code-block.  In this latter case, TABs
+%       have been replaced with spaces earlier (as is the case also for HTML
+%       output, cf #14065).
+\let\spx@FV@Tab\FV@Tab
+% Now set sphinxVerbatim to obey tab stops (defaut: every 8 characters).
+\fvset{obeytabs}
+
 % For parsed-literal blocks.
 \RequirePackage{alltt}
 % Display "real" single quotes in literal blocks.
@@ -345,6 +358,7 @@
   %       (cf \spx@verb@@PreProcessLine; refs: #8686)
   % MEMO: formerly we did something with \fboxsep in relation to the LaTeX
   %       bug graphics/4524 for \colorbox, but as we don't use \colorbox...
+  % MEMO: for \FV@ObeyTabs check comments after this macro definition.
   \setbox\z@\hb@xt@\linewidth{\FV@ObeyTabs{\strut#1}\hss}%
   % MEMO: \colorbox would lead to \color{sphinxVerbatimHighlightColor}
   % plus \color@block, which results in doubled (a color.sty feature)
@@ -362,11 +376,10 @@
   % we added a group only for \FV@RightListNumber not be influenced by the
   % \current@color, if \fvset has been used to set numbers to the right.
 }%
-% MEMO: at least up to time of writing, tab characters from code-blocks do
-% not make it to the .tex file, but they do with literalinclude directive.
+% MEMO: if verbatimwrapslines is set to true (which is default) the #1 here is
+% already a box, and \FV@ObeyTabs does nothing of significance.  The real job is
+% elsewhere, further down in the code next.
 \newcommand\sphinxVerbatimFormatLine[1]{\FV@ObeyTabs{\strut #1}}%
-% MEMO: if verbatimwrapslines is set to true (default) the #1 above is
-% simply \box\spx@tempboxb, from the next two macros.
 % The next two macros are a deep hack of fancyvrb.sty core line processing in
 % order to wrap too long lines, either at spaces and natural break-points,
 % (soft wrap) or optionally at any character (hard wrap).  This requires deep
@@ -423,6 +436,17 @@
      \setbox\spx@tempboxa=\vtop{\hsize\linewidth
           \raggedright\hyphenpenalty\z@\exhyphenpenalty\z@
           \doublehyphendemerits\z@\finalhyphendemerits\z@
+% MEMO: attow (2025/11/26), raw tab characters from contents of code-block's
+% do not make it to the .tex file, but they do with literalinclude directive.
+% cf #13656, #14064, #14065.  The \FV@ObeyTabs dynamically splits the
+% line at each encountered top level TAB char, and adds a suitable horizontal
+% displacement to position of next tab stop.  However, the way it does this
+% is not compatible with a TAB char being in the argument of a macro, and
+% sphinx.sty modifies \PYG for the TAB to not attempts anything there.
+% MEMO: when a long source line wraps over multiple output lines, there is via
+% the sphinx.sty default for verbatimcontinued sphinxsetup option an indent of
+% width equal to two characters, but the tab stops were computed without
+% it. (check if this comment is really true).
           \FV@ObeyTabs{\strut\spx@verb@FV@Line\strut}%
 % MEMO: since LaTeX 2021-06-01, there might be some hooks executed at
 % start and end of paragraphs (in future: PDF tagging), but we need an
@@ -556,6 +580,8 @@
     \fi
 }%
 % auxiliary macros to implement "cut long line even in middle of word"
+% MEMO: it is important that this is does not rely on any specific \PYG
+% meaning, it only relies on its presence in the mark-up, not its meaning.
 \catcode`Z=3 % safe delimiter
 \def\spx@verb@wrapPYG{%
     \futurelet\spx@nexttoken\spx@verb@wrapPYG@i

@@ -80,7 +80,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     'maxlistdepth':    '',
     'sphinxpkgoptions':     '',
     'sphinxsetup':     '',
-    'fvset':           '\\fvset{fontsize=auto,obeytabs}',
+    'fvset':           '\\fvset{fontsize=auto}',
     'passoptionstopackages': '',
     'geometry':        '\\usepackage{geometry}',
     'inputenc':        '',
@@ -202,9 +202,7 @@ ADDITIONAL_SETTINGS: dict[Any, dict[str, Any]] = {
         'fontenc':      '\\usepackage{xeCJK}',
         # set formatcom=\xeCJKVerbAddon to prevent xeCJK from adding extra spaces in
         # fancyvrb Verbatim environment.
-        'fvset':        ('\\fvset{fontsize=\\small,'
-                         'formatcom=\\xeCJKVerbAddon,'
-                         'obeytabs}')
+        'fvset':        '\\fvset{fontsize=\\small,formatcom=\\xeCJKVerbAddon}'
     },
     ('xelatex', 'el'): {
         'fontpkg':      XELATEX_GREEK_DEFAULT_FONTPKG,
