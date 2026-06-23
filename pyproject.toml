@@ -75,7 +75,7 @@ dependencies = [
     "sphinxcontrib-serializinghtml>=1.1.9",
     "Jinja2>=3.1",
     "Pygments>=2.17",
-    "docutils>=0.21,<0.23",
+    "docutils>=0.21,<0.24",
     "snowballstemmer>=2.2",
     "babel>=2.13",
     "alabaster>=0.7.14",
@@ -106,12 +106,12 @@ docs = [
     "sphinxcontrib-websupport",
 ]
 lint = [
-    "ruff==0.14.9",
+    "ruff==0.15.18",
     "sphinx-lint>=0.9",
 ]
 package = [
     "build",
-    "pypi-attestations==0.0.28",
+    "pypi-attestations==0.0.29",
     "twine>=6.1",
 ]
 test = [
@@ -127,20 +127,20 @@ translations = [
     "Jinja2>=3.1",
 ]
 types = [
-    "mypy==1.19.1",
+    "mypy==2.1.0",
     "pyrefly",
-    "pyright==1.1.407",
+    "pyright==1.1.410",
     "ty",
     { include-group = "type-stubs" },
 ]
 type-stubs = [
     # align with versions used elsewhere
-    "types-colorama==0.4.15.20250801",
-    "types-defusedxml==0.7.0.20250822",
-    "types-docutils==0.22.3.20251115",
+    "types-colorama==0.4.15.20260508",
+    "types-defusedxml==0.7.0.20260504",
+    "types-docutils==0.22.3.20260518",
     "types-Pillow==10.2.0.20240822",
     "types-Pygments==2.19.0.20251121",
-    "types-requests==2.32.4.20250913",
+    "types-requests==2.33.0.20260518",
     "types-urllib3==1.26.25.14",
 ]
 
